@@ -29,6 +29,10 @@ Nothing sends without `--confirm`. Dry-run eraser: `OPACITE_ERASER_DRY_RUN=1` on
 
 People-search sites list your address, your relatives, your old phone numbers, your old life, categorized and filtered and reduced down to data that prefigures you before you consent. Data brokers buy and resell that and then third-party for-profit services upload the same packet to the same brokers to negotiate removal on your behalf. You're in the middle of it, getting squeezed and being extracted from.
 
+![Main risks of an under-regulated data brokers industry](https://policyreview.info/sites/default/files/assets/images/node-1670/1.png)
+
+*Figure: Main risks of an under-regulated data brokers industry.* From [The untamed and discreet role of data brokers in surveillance capitalism: a transnational and interdisciplinary overview](https://policyreview.info/articles/analysis/untamed-and-discreet-role-data-brokers-surveillance-capitalism-transnational-and), *Internet Policy Review*.
+
 Glissant’s essay [*For Opacity*](https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Glissant-For-Opacity.pdf) gives language to the right of self-definition. **Opacity** is the claim that you do not owe anyone a complete, searchable version of yourself for someone else to make lazy, heuristic decisions based on non-representative data.
 
 ### Power, control, and the database (a plain version)
