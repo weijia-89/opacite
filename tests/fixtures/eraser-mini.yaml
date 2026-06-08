@@ -1,0 +1,14 @@
+brokers:
+  - id: spokeo
+    name: Spokeo
+    email: privacy@spokeo.com
+    website: https://www.spokeo.com
+    opt_out_url: https://www.spokeo.com/optout
+    region: us
+    category: people-search
+  - id: acme-broker
+    name: Acme Broker
+    email: privacy@acme.example
+    website: https://acme.example
+    region: us
+    category: marketing

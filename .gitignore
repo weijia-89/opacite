@@ -1,0 +1,21 @@
+# Operator data (never commit)
+localonly/
+
+# Secrets and PII patterns (belt-and-suspenders if localonly/ is partially un-ignored)
+*.sqlite
+*.db
+*.enc
+profile.enc
+profile.yaml
+.env
+config.yaml
+**/evidence/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# macOS
+.DS_Store

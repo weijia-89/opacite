@@ -1,0 +1,24 @@
+# Copy to localonly/vault/profile.yaml and fill. profile.yaml is gitignored.
+legal_name:
+  first: ""
+  last: ""
+aliases:
+  - first: ""
+    last: ""
+emails:
+  - ""
+  - ""
+  - ""
+phones:
+  - ""
+  - ""
+  - ""
+addresses:
+  - street: ""
+    city: ""
+    state: ""
+    zip: ""
+    country: US
+date_of_birth: ""  # YYYY-MM-DD optional
+jurisdiction: US
+state_of_residence: CA

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "spokeo",
+    "name": "Spokeo",
+    "website": "https://www.spokeo.com",
+    "optOutUrl": "https://www.spokeo.com/optout"
+  },
+  {
+    "id": "acme-broker",
+    "name": "Acme Broker",
+    "contactEmail": "privacy@acme.example"
+  }
+]

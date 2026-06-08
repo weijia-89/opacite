@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opacite.local/schemas/broker.schema.json",
+  "title": "opacite unified broker entry",
+  "type": "object",
+  "required": ["id", "name", "process", "jurisdiction"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "name": { "type": "string" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "url": { "type": "string", "format": "uri" },
+    "opt_out_url": { "type": "string", "format": "uri" },
+    "contact_email": { "type": "string", "format": "email" },
+    "process": {
+      "type": "string",
+      "enum": [
+        "email-opt-out",
+        "direct-form",
+        "search-for-removal",
+        "opt-out-search",
+        "control-profile",
+        "phone-opt-out",
+        "id-verification",
+        "captcha-gated",
+        "drop-centralized"
+      ]
+    },
+    "broker_class": {
+      "type": "string",
+      "enum": [
+        "people-search",
+        "marketing",
+        "background-check",
+        "credit-bureau",
+        "b2b-enrichment",
+        "people-finder-eu",
+        "state-registered"
+      ]
+    },
+    "jurisdiction": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["US", "US-CA", "EU", "UK", "global"] }
+    },
+    "drop_eligible": { "type": "boolean", "default": false },
+    "automation_tier": { "type": "string", "enum": ["A", "B", "C"] },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["optery", "symaira", "eraser", "datapurge", "ca-registry", "manual"] }
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "working": { "type": "boolean" },
+        "as_of": { "type": "string", "format": "date" },
+        "notes": { "type": "string" }
+      }
+    },
+    "runner": {
+      "type": "string",
+      "enum": ["eraser", "symaira", "air", "vanish", "privotron", "drop", "manual"]
+    }
+  }
+}

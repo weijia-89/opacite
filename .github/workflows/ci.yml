@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    paths:
+      - 'scripts/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PyYAML
+        run: pip install pyyaml
+      - name: Smoke tests
+        run: bash scripts/smoke_test.sh

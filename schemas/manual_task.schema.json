@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "opacite manual task queue",
+  "type": "object",
+  "required": ["case", "generated_at", "tasks"],
+  "properties": {
+    "case": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["broker_id", "reason", "lane"],
+        "properties": {
+          "broker_id": { "type": "string" },
+          "name": { "type": "string" },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "id_verification",
+              "failed_send",
+              "manual_process",
+              "confirm_link",
+              "broken_url"
+            ]
+          },
+          "lane": { "type": "string" },
+          "process": { "type": "string" },
+          "opt_out_url": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}
