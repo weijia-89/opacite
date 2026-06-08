@@ -25,17 +25,15 @@ Nothing sends without `--confirm`. Dry-run eraser: `OPACITE_ERASER_DRY_RUN=1` on
 
 ---
 
-## Why Glissant showed up here
+## Why 'opacite'
 
-I did not name this project after a French poet because I wanted a literary brand. I named it after an irritant I could not shake.
+People-search sites list your address, your relatives, your old phone numbers, your old life, categorized and filtered and reduced down to data that prefigures you before you consent. Data brokers buy and resell that and then third-party for-profit services upload the same packet to the same brokers to negotiate removal on your behalf. You're in the middle of it, getting squeezed and being extracted from.
 
-People-search sites list your address, your relatives, your old phone numbers, often before you have told a new neighbor where you live. Data brokers buy and resell that packet. Incogni-class services ask you to upload the same packet to *them* so they can negotiate removal on your behalf. The posture is always extraction first, then a fee for partial repair.
-
-Glissant’s essay [*For Opacity*](https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Glissant-For-Opacity.pdf) gave language for what felt wrong about that posture. Not secrecy. Not “nothing to hide.” **Opacity**: the claim that you do not owe anyone a complete, searchable version of yourself so their database can run cleanly.
+Glissant’s essay [*For Opacity*](https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Glissant-For-Opacity.pdf) gives language to the right of self-definition. **Opacity** is the claim that you do not owe anyone a complete, searchable version of yourself for someone else to make lazy, heuristic decisions based on non-representative data.
 
 ### Power, control, and the database (a plain version)
 
-Poststructural thought (Foucault is the usual entry point) treats power as something that often works through **sorting**, not only through obvious force. **Biopolitics** is the clunky term for it: govern a population by measuring it, classifying it, optimizing flows of health, risk, labor, and data. A broker does not need to dislike you. It needs you to be **readable**.
+Poststructural thought treats power as something that often works through sorting, not only through obvious force. A state, comprised of institutions, controls its population by measuring it, classifying it, and directing the flows for health, risk, labor, and data. It's impersonal and massive and dehumanizing at its core and prone to abuse.
 
 | What the broker wants | What opacity refuses |
 |-----------------------|---------------------|
@@ -43,15 +41,13 @@ Poststructural thought (Foucault is the usual entry point) treats power as somet
 | Sortability (risk score, marketing segment) | The right to be ambiguous without being treated as fraud |
 | Total legibility for buyers | Relationship without extraction |
 
-Colonial and administrative history is part of why Glissant’s frame lands hard in the Caribbean: “understand you” too often meant “reduce you to my grid.” Opacity is a political refusal of that reduction, not a demand to disappear.
-
-opacite is the tooling side of that refusal for one mundane front: **broker databases**. Opt-out letters, erasure requests, [California DROP](https://privacy.ca.gov/drop/) where it applies. Local vault. No telemetry. You confirm before anything leaves the machine. The scripts are unglamorous. The aim is to give you back room to be opaque to systems built to render you flat.
+Colonial and administrative history helped define Glissant’s frame. Colonial oppressors impose bureaucracy as a means of control. Colonial subjects are categorized, sorted, and assigned direction with policing as enforcement and imprisonment as punishment. This is the same frame at home as it is abroad.
 
 ---
 
 ## Theory (sources)
 
-Glissant develops the idea in [*Poétique de la relation*](https://www.gallimard.fr/Catalogue/GALLIMARD/Blanche/Poetique-de-la-relation) (1990, Gallimard). Betsy Wing’s English [*Poetics of Relation*](https://press.umich.edu/Books/P/Poetics-of-Relation) (University of Michigan Press) is the standard translation.
+Glissant develops the idea in [*Poétique de la relation*](https://www.gallimard.fr/Catalogue/GALLIMARD/Blanche/Poetique-de-la-relation) (1990, Gallimard). Betsy Wing’s English [*Poetics of Relation*](https://press.umich.edu/Books/P/Poetics-of-Relation) (University of Michigan Press) is a good translation of it if you want a more transparent read.
 
 > “Agree not merely to the right to difference but… to the right to opacity that is not enclosure within an impenetrable autarchy but subsistence within an irreducible singularity.”  
 > — Glissant, [*For Opacity*](https://sites.evergreen.edu/politicalshakespeares/wp-content/uploads/sites/226/2015/12/Glissant-For-Opacity.pdf)
