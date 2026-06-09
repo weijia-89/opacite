@@ -1,6 +1,6 @@
 # opacite roadmap
 
-**Status:** 2026-06-10 · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
+**Status:** 2026-06-11 · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
 **Not legal advice.** **Not a removal guarantee.**
 
 ---
@@ -42,11 +42,12 @@ gantt
   Research + skill scaffold     :done, p0, 2026-06-01, 2026-06-07
   Registry merge + plan runner  :done, p1, 2026-06-08, 2026-06-10
   Vault + mandate + email lane  :done, p2, 2026-06-08, 2026-06-10
+  Web + vanish + playbooks      :done, p3, 2026-06-10, 2026-06-11
   section Active
-  Web + vanish + playbooks      :active, p3, 2026-06-10, 2026-08-31
   DROP workflow + dedup         :active, p4, 2026-06-10, 2026-09-15
+  Exposure scan + scan lane     :active, p5a, 2026-06-11, 2026-09-01
   section Steady state
-  Rescan scheduler 60/90        :p5, 2026-09-01, 2026-10-31
+  Rescan scheduler 60/90        :p5b, 2026-09-01, 2026-10-31
   Coverage metrics + audit UI   :p6, 2026-10-01, 2026-12-31
 ```
 
@@ -108,7 +109,7 @@ gantt
 
 ---
 
-## Phase 3 — Web & browser-assisted lane (M3) — **active**
+## Phase 3 — Web & browser-assisted lane (M3) ✅
 
 **Goal:** Cover people-search and form brokers (Tier B); formalize manual queue (Tier C).
 
@@ -122,7 +123,7 @@ gantt
 
 **Kill gate:** Do not enable CapSolver by default (cost, ToS, telemetry). Manual-first.
 
-**Exit:** One end-to-end campaign across email + 10 web brokers with manual queue populated for failures. **Partial:** lanes invocable from `optout_runner.sh`; live symaira/vanish execute remains operator opt-in.
+**Exit:** One end-to-end campaign across email + 10 web brokers with manual queue populated for failures. **Met** for lane wiring (v0.5.2); live symaira/vanish execute remains operator opt-in via env vars.
 
 ---
 
@@ -143,19 +144,21 @@ gantt
 
 ---
 
-## Phase 5 — Discovery, verify & rescan (steady state)
+## Phase 5 — Discovery, verify & rescan (steady state) — **active**
 
 **Goal:** Match Incogni loop: scan → request → verify → rescan.
 
-| # | Work item | Acceptance |
-|---|-----------|------------|
-| 5.1 | `exposure_scan.sh` live mode (rate-limited people-search queries) | `exposure_report.json` + match scores |
-| 5.2 | Delta scan: only re-queue RE_LISTED brokers | Diff against last scan |
-| 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | launchd/cron template in repo |
-| 5.4 | vanish-style verify pass for sample brokers | `exposure_status` updated independently of `request_status` |
-| 5.5 | Quarterly operator review ritual (15 min) | Documented in SKILL.md |
+| # | Work item | Acceptance | Status |
+|---|-----------|------------|--------|
+| 5.1 | `exposure_scan.sh` live mode + `optout_runner --lane scan --confirm` | `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite PLANNED/APPROVED; vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1` | ✅ Wave 3 (`exposure_scan.py`, PR #2–#3); match detail from vanish JSON when installed |
+| 5.2 | Delta scan: only re-queue RE_LISTED brokers | `--delta-only` filters scan-lane `RE_LISTED` | ✅ seed (`exposure_scan.py`); full diff vs last `exposure_report.json` deferred |
+| 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | launchd/cron template in repo | ⏳ |
+| 5.4 | vanish-style verify pass for sample brokers | `exposure_status` updated independently of `request_status` | ⏳ `vanish_adapter --action verify` exists; exposure lane wiring pending |
+| 5.5 | Quarterly operator review ritual (15 min) | Documented in SKILL.md | ⏳ |
 
-**Exit:** Second quarterly rescan runs unattended except operator approval for new submissions.
+**Verified (2026-06-11):** Dry-run scan needs no vanish CLI (CI-safe). Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.
+
+**Exit:** Second quarterly rescan runs unattended except operator approval for new submissions. **Partial:** operator can `--lane scan --confirm` dry-run today; live vanish scan requires local install + `OPACITE_EXPOSURE_EXECUTE=1`.
 
 ---
 
@@ -215,11 +218,12 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 ## Immediate next actions (this week)
 
-1. Operator: first live email batch — `keychain_smtp.sh --check` → `--confirm --lane email --max 5` (skipped in Wave 2; dry-run default).
-2. Operator: `optout_runner.sh --lane web|vanish --confirm` dry-run on case `me`; install symaira/vanish only when ready for live execute env vars.
-3. If CA resident: DROP submission before **Aug 1, 2026** enforcement; then `drop_dedup.py --case <slug> --dry-run`.
-4. Phase 5: `exposure_scan.sh` live mode + `--lane scan --confirm` wiring.
-5. Phase 6.1: Piranesi → Opus automation-ceiling ingest when operator ready.
+1. Operator: first live email batch — `keychain_smtp.sh --check` → `--confirm --lane email --max 5` (dry-run default until eraser configured).
+2. Operator: exposure scan dry-run — `optout_runner.sh --case <slug> --lane scan --confirm`; live vanish scan with `OPACITE_EXPOSURE_EXECUTE=1` after vanish install.
+3. Operator: `optout_runner.sh --lane web|vanish --confirm` dry-run; live execute via `OPACITE_SYMAIRA_EXECUTE=1` / `OPACITE_VANISH_EXECUTE=1`.
+4. If CA resident: DROP submission before **Aug 1, 2026** enforcement; then `drop_dedup.py --case <slug> --dry-run`.
+5. Phase 5.3: ship rescan scheduler template (launchd/cron).
+6. Phase 6.1: Piranesi → Opus automation-ceiling ingest when operator ready.
 
 ---
 
