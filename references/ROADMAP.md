@@ -14,8 +14,8 @@ Brutal truth table after Wave 3 landed and Wave 4 preflight (`localonly/trainer-
 | Rescan scheduler (60d / 90d) | P1 | **Shipped** — `rescan_scheduler.sh` dry-run planner + launchd/cron docs (PR pending) | Wave 4 · `rescan-scheduler` ✅ |
 | Verify wired to exposure/rescan | P1 | **Shipped** — `exposure_scan.sh --verify`; `OPACITE_EXPOSURE_VERIFY=1` on scan confirm (PR pending) | Wave 4 · `exposure-verify-wire` ✅ |
 | Verify dry-run without vanish CLI | P1 | **Fixed** — verify dry-run CI-safe like scan | Wave 4 · `exposure-verify-wire` ✅ |
-| `--delta-only` report diff | P2 | **Seed only** — filters `RE_LISTED`; no diff vs prior `exposure_report.json` | Wave 4 · `exposure-delta-diff` |
-| `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Schema only** — no production `append_event` for exposure terminal states (**doc lie** on 5.2 ✅) | Wave 4 · verify + delta agents |
+| `--delta-only` report diff | P2 | **Shipped** — diffs `target_broker_ids` vs prior report (PR pending) | Wave 4 · `exposure-delta-diff` ✅ |
+| `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Partial** — live verify on lane=`scan` writes terminal states | Wave 4 · `exposure-verify-wire` ✅ |
 | `exposure_status` ≠ `request_status` | P2 | **Principle #5 doc-only** — verify writes `APPROVED`/`SUBMITTED`, not exposure KPIs | Wave 4 · `exposure-verify-wire` |
 | Quarterly operator ritual | P3 | **Missing** from `SKILL.md` | Wave 4 · `roadmap-ritual-sync` |
 | `status_summary()` lane partition | P2 | **Deferred** — global per-broker counts blur multi-lane cases | Post–Wave 4 |
@@ -179,7 +179,7 @@ gantt
 | # | Work item | Acceptance | Status |
 |---|-----------|------------|--------|
 | 5.1 | `exposure_scan.sh` live mode + `optout_runner --lane scan --confirm` | `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite PLANNED/APPROVED; vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1` | ✅ Wave 3 (`v0.5.3`); match detail from vanish JSON when installed |
-| 5.2 | Delta scan: re-queue only changed / relisted brokers | `--delta-only` skips unchanged vs last `exposure_report.json`; re-queue `RE_LISTED` + new/changed matches | 🟡 **partial** — RE_LISTED filter seed only; **no report diff**; **no production writer** for `RE_LISTED`/`VERIFIED_REMOVED` |
+| 5.2 | Delta scan: re-queue only changed / relisted brokers | `--delta-only` skips unchanged vs last `exposure_report.json`; re-queue `RE_LISTED` + new brokers | ✅ Wave 4 agent 3 — report diff via `target_broker_ids`; `RE_LISTED`/`VERIFIED_REMOVED` writers on verify live path |
 | 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | `rescan_scheduler.sh --dry-run` prints next due; launchd/cron templates in `references/rescan-scheduler.md` | ✅ Wave 4 agent 1 (`rescan_scheduler.py`); operator still runs suggested commands manually |
 | 5.4 | vanish-style verify pass for sample brokers | `--verify` or scan-lane verify path; `exposure_status` (`VERIFIED_REMOVED`/`RE_LISTED`) independent of `request_status` (`SUBMITTED` on email/web) | ✅ Wave 4 agent 2 — dry-run + live path on lane=`scan`; vanish lane verify unchanged |
 | 5.5 | Quarterly operator review ritual (15 min) | Documented in `SKILL.md` + ROADMAP cross-link | ⏳ **Wave 4 agent 4** |
