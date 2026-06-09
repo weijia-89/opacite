@@ -2,7 +2,7 @@
 name: opacite
 description: |
   Local-first orchestration for automated personal-data removal from data brokers and people-search sites without cloud telemetry. Composes FOSS runners; human-in-loop before outbound requests. Composes FOSS runners (eraser, symaira-eraseme, vanish, auto-identity-remove), encrypted on-device profile vault, exposure scan, opt-out campaign planner, inbox triage, and CA DROP integration. Triggers opacite, opacité, opacity, data broker removal, opt out of data brokers, remove my info from people search, PII removal, Incogni alternative, DeleteMe DIY, personal data erasure, DROP deletion request.
-version: 0.5.0
+version: 0.5.1
 canonical_location: /Users/dubs/Projects/opacite.skill/SKILL.md
 type: project-skill
 license: MIT

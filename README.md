@@ -17,7 +17,7 @@ FOSS runners sit behind an encrypted vault on your machine. You approve each out
 | 0–1 | Registry merge, health scan, campaign planner, SQLite state | **Done** — 2,854 brokers; health filter on `--plan` |
 | 1b | symaira YAML merge | **Done** |
 | 2 | Vault, mandate, email lane, manual export, eraser ID mapping | **Done** — `eraser_adapter.py`, `keychain_smtp.sh`, `manual_tasks_export.py` |
-| 3 | Web + vanish lanes, operator playbooks | **Wave 1 done** — `symaira_adapter.py`, `vanish_adapter.py`, 25 playbooks; dry-run default |
+| 3 | Web + vanish lanes, operator playbooks | **Wave 2 done** — `optout_runner --lane web` / `vanish`; adapters + 25 playbooks; dry-run default |
 | 4 | California DROP | **Doc + recorder + dedup** — `drop-workflow.md`, `drop_lane.sh`, `drop_dedup.py` |
 | 5–6 | Rescan, metrics | Not started |
 

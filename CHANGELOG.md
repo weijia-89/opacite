@@ -74,13 +74,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - SY-03: `require_mandate()` on symaira `--execute` unless `OPACITE_SKIP_MANDATE=1`
 - VN-02: vanish blocked actions recorded before CLI discovery (no false “install vanish” on opt-out)
 
+## [0.5.1] - 2026-06-10
+
+### Added
+
+- `optout_runner.sh --lane vanish` → `vanish_adapter.py` (scan dry-run default; live with `OPACITE_VANISH_EXECUTE=1`)
+- Post-confirm `manual_tasks_export.py` hint on web and vanish lanes (matches email lane)
+
+### Changed
+
+- `vanish_adapter.py`: scan dry-run works without vanish CLI installed (CI / operator stub path)
+- `references/ROADMAP.md`: Phase 3.1–3.3, 4.2 status; gantt reflects v0.5.x progress
+
+### Fixed
+
+- Vanish scan dry-run no longer requires `vanish` in PATH when only logging intent
+
 ## [Unreleased]
 
 ### Planned
 
-- Phase 3 Wave 2: opt-out lane wiring, roadmap sync, skill version bump
-- Phase 5–6: rescan and coverage measurement
+- Phase 5–6: `exposure_scan.sh` live mode, rescan scheduler, coverage metrics
 
+[0.5.1]: https://github.com/weijia-89/opacite/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/weijia-89/opacite/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/weijia-89/opacite/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/weijia-89/opacite/compare/v0.2.0...v0.3.0
