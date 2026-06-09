@@ -53,6 +53,8 @@ def compute_dedup(
     drop_active, drop_brokers = drop_lane_submitted(slug)
 
     overlap = eligible & emailed
+    # Always skip brokers already emailed; when DROP lane fired, skip all drop_eligible
+    # so the next eraser batch does not duplicate statewide deletion coverage.
     skip: set[str] = set(emailed)
     if drop_active:
         skip |= eligible
