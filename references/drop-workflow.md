@@ -52,7 +52,35 @@ bash scripts/drop_lane.sh --case me --confirm --evidence localonly/cases/me/evid
 
 - Single aggregate event: `broker_id=california-drop-registry`, `lane=drop`, `event=SUBMITTED`
 - Meta includes `registered_broker_count: 545` (Jan 2026 anchor) and evidence path
-- Per-broker SUBMITTED rows for all 545 IDs are **not** written automatically (Phase 4.2 dedup tooling later)
+- Per-broker SUBMITTED rows for all 545 IDs are **not** written automatically; use `drop_dedup.py` to derive skip list from aggregate DROP + registry `drop_eligible`
+
+---
+
+## Email overlap dedup (Phase 4.2)
+
+After DROP submission, **do not** email brokers already covered by the registry-wide DROP request. If you emailed some brokers before DROP, those overlap ids are redundant with DROP for `drop_eligible` brokers.
+
+**Script (read-only SQLite + registry; no network):**
+
+```bash
+python3 scripts/drop_dedup.py --case me --dry-run
+python3 scripts/drop_dedup.py --case me --dry-run --json
+```
+
+| Output field | Meaning |
+|--------------|---------|
+| `skip_brokers` | Broker ids to exclude from the next `optout_runner.sh --lane email` batch |
+| `overlap` | `drop_eligible` ∩ email `SUBMITTED` (duplicate coverage) |
+| `drop_lane_submitted` | True when any `lane=drop` event is `SUBMITTED` (aggregate or per-broker) |
+
+**Skip rules:**
+
+1. Always skip brokers with latest `lane=email` event `SUBMITTED`.
+2. When DROP is `SUBMITTED`, also skip all registry brokers with `drop_eligible: true` (or `process: drop-centralized`).
+
+Exit codes: `0` on success (including empty skip list); `1` when the case directory or registry file is missing.
+
+Wire into planning: filter candidate email brokers against `skip_brokers` before `--confirm`.
 
 ---
 
