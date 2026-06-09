@@ -217,11 +217,10 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 ## Immediate next actions (this week)
 
-1. **Phase 3 Wave 1** — see `localonly/daily/2026-06-10.md` (symaira-harden, vanish-lane, playbook-seed, drop-dedup).
+1. **Phase 3 Wave 2** — `optout-lane-wire`, `roadmap-sync`, `skill-version-bump` (see `localonly/daily/2026-06-10.md`).
 2. Operator: Keychain SMTP or `eraser init` → first live `--confirm --max 5` email batch.
-3. Merge Wave 1 worktrees → smoke test → trainer review before push.
-4. If CA resident: pre-build DROP submission before **Aug 1, 2026** enforcement.
-5. Paste Piranesi packet into Opus when ready for Phase 6.1 automation-ceiling ingest.
+3. If CA resident: pre-build DROP submission before **Aug 1, 2026** enforcement; run `drop_dedup.py` after submit.
+4. Paste Piranesi packet into Opus when ready for Phase 6.1 automation-ceiling ingest.
 
 ---
 

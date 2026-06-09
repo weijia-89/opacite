@@ -2,7 +2,7 @@
 name: opacite
 description: |
   Local-first orchestration for automated personal-data removal from data brokers and people-search sites without cloud telemetry. Composes FOSS runners; human-in-loop before outbound requests. Composes FOSS runners (eraser, symaira-eraseme, vanish, auto-identity-remove), encrypted on-device profile vault, exposure scan, opt-out campaign planner, inbox triage, and CA DROP integration. Triggers opacite, opacité, opacity, data broker removal, opt out of data brokers, remove my info from people search, PII removal, Incogni alternative, DeleteMe DIY, personal data erasure, DROP deletion request.
-version: 0.4.0
+version: 0.5.0
 canonical_location: /Users/dubs/Projects/opacite.skill/SKILL.md
 type: project-skill
 license: MIT
@@ -32,7 +32,7 @@ constraints:
 ## Invocation preamble
 
 ```
-opacite v0.4 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
+opacite v0.5 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
 ```
 
 ## Iron laws
@@ -136,6 +136,7 @@ When routing to **piranesi** for ChatPRD/Opus:
 
 ## Version history
 
+- **0.5.0** (2026-06-10): Phase 3 Wave 1 — symaira per-broker web lane, vanish scan adapter, DROP dedup, 25 operator playbooks.
 - **0.4.0** (2026-06-09): Phase 2 complete — mandate gate, manual task export, Keychain SMTP, eraser SUBMITTED events.
 - **0.3.0** (2026-06-08): Phase 1b symaira merge (default); full registry_health; Phase 2 vault + mandate generator.
 - **0.2.0** (2026-06-08): Phase 1 — SQLite campaign state, registry_health, eraser merge, cruft cleanup.

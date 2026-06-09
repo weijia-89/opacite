@@ -10,15 +10,15 @@ FOSS runners sit behind an encrypted vault on your machine. You approve each out
 
 ---
 
-## Status (2026-06-08)
+## Status (2026-06-10)
 
 | Phase | Scope | State |
 |-------|--------|-------|
 | 0–1 | Registry merge, health scan, campaign planner, SQLite state | **Done** — 2,854 brokers; health filter on `--plan` |
 | 1b | symaira YAML merge | **Done** |
 | 2 | Vault, mandate, email lane, manual export, eraser ID mapping | **Done** — `eraser_adapter.py`, `keychain_smtp.sh`, `manual_tasks_export.py` |
-| 3 | Web lane (symaira) | **Stub** — `symaira_adapter.py` (dry-run default) |
-| 4 | California DROP | **Doc + recorder** — `drop-workflow.md`, `drop_lane.sh` |
+| 3 | Web + vanish lanes, operator playbooks | **Wave 1 done** — `symaira_adapter.py`, `vanish_adapter.py`, 25 playbooks; dry-run default |
+| 4 | California DROP | **Doc + recorder + dedup** — `drop-workflow.md`, `drop_lane.sh`, `drop_dedup.py` |
 | 5–6 | Rescan, metrics | Not started |
 
 Nothing sends without `--confirm`. Dry-run eraser: `OPACITE_ERASER_DRY_RUN=1` on `--confirm --lane email`.
@@ -102,6 +102,13 @@ python3 scripts/manual_tasks_export.py --case me
 `bash scripts/optout_runner.sh --case me --lane web --confirm --max 3`  
 Live: `OPACITE_SYMAIRA_EXECUTE=1` (requires `symeraseme` in PATH).
 
+**Vanish lane (scan/verify only; opt-out blocked):**  
+`bash scripts/optout_runner.sh --case me --lane vanish --confirm --max 3`  
+Setup: [`references/vanish-lane-setup.md`](references/vanish-lane-setup.md)
+
+**DROP dedup (after CA submission):**  
+`python3 scripts/drop_dedup.py --case me --dry-run`
+
 **SMTP (macOS):** [`references/email-lane-setup.md`](references/email-lane-setup.md) + `scripts/keychain_smtp.sh`
 
 **Verify:** `bash scripts/smoke_test.sh`
@@ -170,6 +177,8 @@ Palamedes lane research is the evidence base: [`references/comparable-foss-repos
 | [`references/ROADMAP.md`](references/ROADMAP.md) | Phase plan and verified anchors |
 | [`references/comparable-foss-repos.md`](references/comparable-foss-repos.md) | Curated FOSS exploration index |
 | [`references/piranesi-external-research-packet.md`](references/piranesi-external-research-packet.md) | Opus/ChatPRD automation-ceiling packet |
+| [`references/playbook-index.md`](references/playbook-index.md) | People-search operator playbooks (25 sites) |
+| [`references/vanish-lane-setup.md`](references/vanish-lane-setup.md) | Vanish CLI install and scan lane |
 
 Operator-local research (gitignored): `localonly/archive/research/`
 

@@ -49,13 +49,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - Initial skill scaffold, broker taxonomy, comparable FOSS research
 - `SKILL.md` v0.4.0 contract surface
 
+## [0.5.0] - 2026-06-10
+
+### Added
+
+- Phase 3 Wave 1: `symaira_adapter.py` per-broker `run-web-form` path (dry-run default)
+- `vanish_adapter.py` — scan/verify only; opt-out and LLM memory check blocked with evidence
+- `drop_dedup.py` — skip email-lane brokers already covered by CA DROP submission
+- 25 operator playbooks under `references/playbooks/` + `references/playbook-index.md`
+- `references/vanish-lane-setup.md`, `requirements-dev.txt`
+- Tests: `test_symaira_adapter.py`, `test_vanish_adapter.py`, `test_drop_dedup.py` (31 total)
+- Piranesi Phase 3 ChatPRD packet index (`references/piranesi-phase3-chatprd-packets.md`)
+
+### Changed
+
+- `latest_events()` partitions by `(broker_id, lane)` so web SUBMITTED does not block email PLANNED
+- `optout_runner.sh` web lane always passes `--per-broker` to symaira
+- `smoke_test.sh` prefers `.venv`, checks PyYAML, compiles all lane adapters
+- Phase 3 Palamedes synthesis archived under `localonly/archive/research/pattern8-opacite-2026-06-10/`
+
+### Fixed
+
+- SY-01: removed unsafe symaira `--use-plan-execute` batch path
+- SY-03: `require_mandate()` on symaira `--execute` unless `OPACITE_SKIP_MANDATE=1`
+- VN-02: vanish blocked actions recorded before CLI discovery (no false “install vanish” on opt-out)
+
 ## [Unreleased]
 
 ### Planned
 
-- Phase 3: symaira web-form lane and manual queue UI
+- Phase 3 Wave 2: opt-out lane wiring, roadmap sync, skill version bump
 - Phase 5–6: rescan and coverage measurement
 
+[0.5.0]: https://github.com/weijia-89/opacite/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/weijia-89/opacite/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/weijia-89/opacite/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/weijia-89/opacite/releases/tag/v0.2.0
