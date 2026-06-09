@@ -183,6 +183,26 @@ class TestExposureScanDelta(unittest.TestCase):
                 )
                 self.assertEqual(out["scan_target_count"], 1)
 
+    def test_delta_only_skips_unchanged_after_prior_report(self) -> None:
+        reg = ROOT / "tests/fixtures/scan-registry-mini.json"
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_root = Path(tmp)
+            slug = "scan-delta2"
+            with _CaseIsolation(tmp_root, slug):
+                exposure_scan.run_scan(
+                    case=slug,
+                    registry_path=reg,
+                    dry_run=True,
+                    delta_only=False,
+                )
+                out = exposure_scan.run_scan(
+                    case=slug,
+                    registry_path=reg,
+                    dry_run=True,
+                    delta_only=True,
+                )
+                self.assertEqual(out["scan_target_count"], 0)
+
 
 class TestExposureScanVerify(unittest.TestCase):
     def test_verify_dry_run_delegates_and_writes_report(self) -> None:
