@@ -4,6 +4,85 @@ All notable changes to this project are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Planned
+
+- Phase 5.3–5.5: rescan scheduler, exposure verify wiring, quarterly operator ritual
+- Phase 6: automation ceiling table, local audit UI
+
+## [0.5.3] - 2026-06-11
+
+### Added
+
+- `exposure_scan.py` — `exposure_plan.json`, `exposure_report.json`, lane=`scan` SQLite PLANNED/APPROVED/MANUAL_REQUIRED events
+- `optout_runner.sh --lane scan --confirm` dispatches `exposure_scan.sh` with `--registry` passthrough
+- Live exposure path: vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1`; `--delta-only` filters `RE_LISTED` brokers
+- `tests/test_exposure_scan.py` (6 tests); `tests/fixtures/scan-registry-mini.json`
+- Scan lane tests in `tests/test_optout_lane_filter.py`
+
+### Changed
+
+- `exposure_scan.sh` — thin wrapper around `exposure_scan.py`
+- `references/ROADMAP.md` — Phase 5 §5.1–5.2 shipped; Phase 5 active in gantt; Phase 3 core lanes complete
+
+### Fixed
+
+- Scan integration tests no longer require operator `case me` or gitignored `unified-brokers.json` (CI parity)
+
+## [0.5.2] - 2026-06-10
+
+### Fixed
+
+- SY-02: web lane excludes `runner=vanish` brokers (no symaira dispatch on vanish scan targets)
+- Stale vanish opt-out blocked message (consent gate, not Wave 2)
+- DRY `run_manual_export_hint()` in `optout_runner.sh`
+
+### Added
+
+- `tests/test_optout_lane_filter.py` — lane filter + `--help` coverage
+- `scripts/trainer_pr_review_post.sh` — trainer codereview gate helper
+
+## [0.5.1] - 2026-06-10
+
+### Added
+
+- `optout_runner.sh --lane vanish` → `vanish_adapter.py` (scan dry-run default; live with `OPACITE_VANISH_EXECUTE=1`)
+- Post-confirm `manual_tasks_export.py` hint on web and vanish lanes (matches email lane)
+
+### Changed
+
+- `vanish_adapter.py`: scan dry-run works without vanish CLI installed (CI / operator stub path)
+- `references/ROADMAP.md`: Phase 3.1–3.3, 4.2 status; gantt reflects v0.5.x progress
+
+### Fixed
+
+- Vanish scan dry-run no longer requires `vanish` in PATH when only logging intent
+
+## [0.5.0] - 2026-06-10
+
+### Added
+
+- Phase 3 Wave 1: `symaira_adapter.py` per-broker `run-web-form` path (dry-run default)
+- `vanish_adapter.py` — scan/verify only; opt-out and LLM memory check blocked with evidence
+- `drop_dedup.py` — skip email-lane brokers already covered by CA DROP submission
+- 25 operator playbooks under `references/playbooks/` + `references/playbook-index.md`
+- `references/vanish-lane-setup.md`, `requirements-dev.txt`
+- Tests: `test_symaira_adapter.py`, `test_vanish_adapter.py`, `test_drop_dedup.py` (31 total)
+- Piranesi Phase 3 ChatPRD packet index (`references/piranesi-phase3-chatprd-packets.md`)
+
+### Changed
+
+- `latest_events()` partitions by `(broker_id, lane)` so web SUBMITTED does not block email PLANNED
+- `optout_runner.sh` web lane always passes `--per-broker` to symaira
+- `smoke_test.sh` prefers `.venv`, checks PyYAML, compiles all lane adapters
+
+### Fixed
+
+- SY-01: removed unsafe symaira `--use-plan-execute` batch path
+- SY-03: `require_mandate()` on symaira `--execute` unless `OPACITE_SKIP_MANDATE=1`
+- VN-02: vanish blocked actions recorded before CLI discovery (no false “install vanish” on opt-out)
+
 ## [0.4.0] - 2026-06-08
 
 ### Added
@@ -14,8 +93,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - `manual_tasks_export.py` + `schemas/manual_task.schema.json`
 - `keychain_smtp.sh` for macOS Keychain SMTP setup
 - `references/email-lane-setup.md` operator guide
-- Eraser broker ID resolution: Optery numeric ids vs eraser YAML slugs (`eraser_id`, email, name slug)
-- `find_eraser()` discovers `ERASER_BIN`, `~/bin/eraser`, `/usr/local/bin/eraser`
+- Eraser broker ID resolution: Optery numeric ids vs eraser YAML slugs
 - Registry merge: `find_optery_merge_target()` + `eraser_id` on Optery rows when eraser matches
 - `tests/test_phase2.py` (14 tests with registry merge)
 - Public docs: `ARCHITECTURE.md`, `SECURITY.md`, `LICENSE`
@@ -49,65 +127,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - Initial skill scaffold, broker taxonomy, comparable FOSS research
 - `SKILL.md` v0.4.0 contract surface
 
-## [0.5.0] - 2026-06-10
-
-### Added
-
-- Phase 3 Wave 1: `symaira_adapter.py` per-broker `run-web-form` path (dry-run default)
-- `vanish_adapter.py` — scan/verify only; opt-out and LLM memory check blocked with evidence
-- `drop_dedup.py` — skip email-lane brokers already covered by CA DROP submission
-- 25 operator playbooks under `references/playbooks/` + `references/playbook-index.md`
-- `references/vanish-lane-setup.md`, `requirements-dev.txt`
-- Tests: `test_symaira_adapter.py`, `test_vanish_adapter.py`, `test_drop_dedup.py` (31 total)
-- Piranesi Phase 3 ChatPRD packet index (`references/piranesi-phase3-chatprd-packets.md`)
-
-### Changed
-
-- `latest_events()` partitions by `(broker_id, lane)` so web SUBMITTED does not block email PLANNED
-- `optout_runner.sh` web lane always passes `--per-broker` to symaira
-- `smoke_test.sh` prefers `.venv`, checks PyYAML, compiles all lane adapters
-- Phase 3 Palamedes synthesis archived under `localonly/archive/research/pattern8-opacite-2026-06-10/`
-
-### Fixed
-
-- SY-01: removed unsafe symaira `--use-plan-execute` batch path
-- SY-03: `require_mandate()` on symaira `--execute` unless `OPACITE_SKIP_MANDATE=1`
-- VN-02: vanish blocked actions recorded before CLI discovery (no false “install vanish” on opt-out)
-
-## [0.5.2] - 2026-06-10
-
-### Fixed
-
-- SY-02: web lane excludes `runner=vanish` brokers (no symaira dispatch on vanish scan targets)
-- Stale vanish opt-out blocked message (consent gate, not Wave 2)
-- DRY `run_manual_export_hint()` in `optout_runner.sh`
-
-### Added
-
-- `tests/test_optout_lane_filter.py` — lane filter + `--help` coverage
-
-## [0.5.1] - 2026-06-10
-
-### Added
-
-- `optout_runner.sh --lane vanish` → `vanish_adapter.py` (scan dry-run default; live with `OPACITE_VANISH_EXECUTE=1`)
-- Post-confirm `manual_tasks_export.py` hint on web and vanish lanes (matches email lane)
-
-### Changed
-
-- `vanish_adapter.py`: scan dry-run works without vanish CLI installed (CI / operator stub path)
-- `references/ROADMAP.md`: Phase 3.1–3.3, 4.2 status; gantt reflects v0.5.x progress
-
-### Fixed
-
-- Vanish scan dry-run no longer requires `vanish` in PATH when only logging intent
-
-## [Unreleased]
-
-### Planned
-
-- Phase 5–6: `exposure_scan.sh` live mode, rescan scheduler, coverage metrics
-
+[0.5.3]: https://github.com/weijia-89/opacite/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/weijia-89/opacite/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/weijia-89/opacite/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/weijia-89/opacite/compare/v0.4.0...v0.5.0

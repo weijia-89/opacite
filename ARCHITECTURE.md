@@ -14,7 +14,8 @@ Compose existing FOSS removal runners behind one machine-local layer: encrypted 
 registry_sync.sh     → unified-brokers.json (localonly/, gitignored)
 registry_health.sh   → registry_health.json (reachable | blocked | dead)
 optout_runner --plan → campaign_plan.json + PLANNED events
-optout_runner --confirm --lane email → eraser_adapter.py → SUBMITTED | FAILED + evidence log
+optout_runner --confirm --lane * → lane adapter or exposure_scan.py
+exposure_scan.py → exposure_plan.json + exposure_report.json + lane=scan events
 manual_tasks_export  → exports/manual_tasks.{json,md}
 ```
 
@@ -37,7 +38,9 @@ flowchart TB
 
   subgraph execute [Execution adapters]
     EraserLane[eraser_adapter — email]
-    SymairaLane[symaira_adapter — web stub]
+    SymairaLane[symaira_adapter — web]
+    VanishLane[vanish_adapter — scan/verify]
+    ScanLane[exposure_scan.py — discovery]
     DropLane[drop_lane.sh — CA DROP]
   end
 
@@ -48,6 +51,8 @@ flowchart TB
   Merge --> State
   State --> EraserLane
   State --> SymairaLane
+  State --> VanishLane
+  State --> ScanLane
   State --> DropLane
   Mandate --> EraserLane
 ```
@@ -74,7 +79,8 @@ Schema: [`schemas/campaign.sql`](schemas/campaign.sql). Helpers: [`scripts/opaci
 | Process | Runner | Phase |
 |---------|--------|-------|
 | `email-opt-out` | eraser via `eraser_adapter.py` | **2 (done)** |
-| `direct-form` / people-search | symaira (stub), vanish, AIR | 3 |
+| `direct-form` / people-search | symaira, vanish | 3 (done) |
+| people-search discovery | `exposure_scan.py` + `--lane scan` | 5 (partial) |
 | `drop-centralized` | `drop_lane.sh` + operator portal | 4 |
 | `id-verification` | manual queue only | never auto |
 
@@ -108,8 +114,9 @@ Details: [`SECURITY.md`](SECURITY.md).
 |-----------|--------|
 | M1 Registry + plan | Done |
 | M2 Email lane + mandate + manual export | Done |
-| M3 Web lane + manual queue UI | In progress |
-| M4 CA DROP integration | Doc + recorder shipped |
-| M5–M6 Rescan + coverage metrics | Planned |
+| M3 Web + vanish lanes + playbooks | Done (live execute opt-in) |
+| M4 CA DROP integration | Doc + recorder + dedup |
+| M5 Exposure scan + scan lane | Partial (scheduler pending) |
+| M6 Coverage metrics + audit UI | Planned |
 
 Roadmap detail: [`references/ROADMAP.md`](references/ROADMAP.md).

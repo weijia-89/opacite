@@ -1,9 +1,8 @@
 ---
 name: opacite
 description: |
-  Local-first orchestration for automated personal-data removal from data brokers and people-search sites without cloud telemetry. Composes FOSS runners; human-in-loop before outbound requests. Composes FOSS runners (eraser, symaira-eraseme, vanish, auto-identity-remove), encrypted on-device profile vault, exposure scan, opt-out campaign planner, inbox triage, and CA DROP integration. Triggers opacite, opacité, opacity, data broker removal, opt out of data brokers, remove my info from people search, PII removal, Incogni alternative, DeleteMe DIY, personal data erasure, DROP deletion request.
-version: 0.5.2
-canonical_location: /Users/dubs/Projects/opacite.skill/SKILL.md
+  Local-first orchestration for automated personal-data removal from data brokers and people-search sites without cloud telemetry. Composes FOSS runners (eraser, symaira-eraseme, vanish, auto-identity-remove) with encrypted on-device profile vault, exposure scan, opt-out campaign planner, inbox triage, and CA DROP integration. Human-in-loop before outbound requests. Triggers opacite, opacité, opacity, data broker removal, opt out of data brokers, remove my info from people search, PII removal, Incogni alternative, DeleteMe DIY, personal data erasure, DROP deletion request.
+version: 0.5.3
 type: project-skill
 license: MIT
 composes:
@@ -32,7 +31,7 @@ constraints:
 ## Invocation preamble
 
 ```
-opacite v0.5 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
+opacite v0.5.3 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
 ```
 
 ## Iron laws
@@ -66,7 +65,7 @@ Tier key: **A** = unattended script · **B** = browser-assisted / one-click conf
 |------|------|-----------------|
 | `plan` | First run; jurisdiction unknown | Read `references/ARCHITECTURE.md`, run `registry_sync.sh --dry-run` |
 | `scan` | Find where you appear | `exposure_scan.sh` |
-| `campaign` | Execute opt-out wave | `optout_runner.sh --lane email\|web\|drop` |
+| `campaign` | Execute opt-out wave | `optout_runner.sh --lane email\|web\|vanish\|scan\|drop` |
 | `triage` | Process broker replies | symaira triage adapter or local IMAP + LLM (offline model only) |
 | `rescan` | 60–90 day recurrence | `exposure_scan.sh` + delta opt-outs |
 | `audit` | Coverage / gap report | `references/comparable-foss-repos.md`; archived lanes under `localonly/archive/research/` |
@@ -80,14 +79,15 @@ bash ~/Projects/opacite.skill/scripts/bootstrap_case.sh --slug me --mkdir
 # 2. Sync broker registry (Optery JSON + CA registry → local merge)
 bash ~/Projects/opacite.skill/scripts/registry_sync.sh --jurisdiction US
 
-# 3. Exposure scan (read-only; no opt-outs sent)
-bash ~/Projects/opacite.skill/scripts/exposure_scan.sh --dry-run
+# 3. Exposure scan (read-only plan; no opt-outs sent)
+bash scripts/exposure_scan.sh --case me --dry-run
+# Or via runner: optout_runner.sh --case me --lane scan --confirm
 
 # 4. Plan campaign (prints batch plan; no sends)
-bash ~/Projects/opacite.skill/scripts/optout_runner.sh --plan --max 50
+bash scripts/optout_runner.sh --case me --plan --lane email --max 50
 
-# 5. After operator review — execute one lane
-bash ~/Projects/opacite.skill/scripts/optout_runner.sh --lane email --confirm
+# 5. After operator review — execute one lane (live flags: OPACITE_*_EXECUTE=1)
+bash scripts/optout_runner.sh --case me --lane email --confirm
 ```
 
 ## Specialist routing (trainer)
@@ -114,7 +114,7 @@ bash ~/Projects/opacite.skill/scripts/optout_runner.sh --lane email --confirm
 | `references/piranesi-*-chatprd-packets.md` | Full-context ChatPRD packets (canonical export path) |
 | `localonly/archive/research/` | Archived Palamedes + lane synthesis (internal only) |
 | `localonly/daily/` | Superset dispatch manifests |
-| `scripts/` | registry_sync, registry_health, vault_init, mandate_generate, exposure_scan, optout_runner, manual_tasks_export, eraser_adapter, keychain_smtp, bootstrap_case, opacite_lib, opacite_registry |
+| `scripts/` | registry_sync, registry_health, vault_init, mandate_generate, exposure_scan, exposure_scan.py, optout_runner, manual_tasks_export, eraser_adapter, symaira_adapter, vanish_adapter, drop_dedup, keychain_smtp, bootstrap_case, opacite_lib, opacite_registry |
 | `schemas/campaign.sql` | SQLite campaign event schema |
 | `schemas/broker.schema.json` | Unified broker entry schema |
 
@@ -136,6 +136,9 @@ When routing to **piranesi** for ChatPRD/Opus:
 
 ## Version history
 
+- **0.5.3** (2026-06-11): Phase 5 Wave 3 — exposure scan live path, `--lane scan --confirm`, `exposure_report.json`, lane=`scan` SQLite events.
+- **0.5.2** (2026-06-10): SY-02 web/vanish lane split; trainer PR review helper.
+- **0.5.1** (2026-06-10): vanish lane wired in optout_runner.
 - **0.5.0** (2026-06-10): Phase 3 Wave 1 — symaira per-broker web lane, vanish scan adapter, DROP dedup, 25 operator playbooks.
 - **0.4.0** (2026-06-09): Phase 2 complete — mandate gate, manual task export, Keychain SMTP, eraser SUBMITTED events.
 - **0.3.0** (2026-06-08): Phase 1b symaira merge (default); full registry_health; Phase 2 vault + mandate generator.

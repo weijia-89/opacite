@@ -10,18 +10,17 @@ FOSS runners sit behind an encrypted vault on your machine. You approve each out
 
 ---
 
-## Status (2026-06-10)
+## Status (2026-06-11)
 
 | Phase | Scope | State |
 |-------|--------|-------|
-| 0–1 | Registry merge, health scan, campaign planner, SQLite state | **Done** — 2,854 brokers; health filter on `--plan` |
-| 1b | symaira YAML merge | **Done** |
-| 2 | Vault, mandate, email lane, manual export, eraser ID mapping | **Done** — `eraser_adapter.py`, `keychain_smtp.sh`, `manual_tasks_export.py` |
-| 3 | Web + vanish lanes, operator playbooks | **Wave 2 done** — `optout_runner --lane web` / `vanish`; adapters + 25 playbooks; dry-run default |
-| 4 | California DROP | **Doc + recorder + dedup** — `drop-workflow.md`, `drop_lane.sh`, `drop_dedup.py` |
-| 5–6 | Rescan, metrics | Not started |
+| 0–2 | Registry, vault, email lane, mandate, manual export | **Done** |
+| 3 | Web + vanish lanes, 25 playbooks | **Done** — dry-run default; live via env execute flags |
+| 4 | California DROP | **Doc + recorder + dedup** — operator submits portal |
+| 5 | Exposure scan + scan lane | **Partial** — `--lane scan --confirm`; live vanish needs local install |
+| 6 | Metrics, audit UI | Planned |
 
-Nothing sends without `--confirm`. Dry-run eraser: `OPACITE_ERASER_DRY_RUN=1` on `--confirm --lane email`.
+Nothing sends without `--confirm`. Lane execute env vars: `OPACITE_ERASER_DRY_RUN=1` (email dry-run), `OPACITE_EXPOSURE_EXECUTE=1` (live exposure scan).
 
 ---
 
@@ -106,6 +105,12 @@ Live: `OPACITE_SYMAIRA_EXECUTE=1` (requires `symeraseme` in PATH).
 `bash scripts/optout_runner.sh --case me --lane vanish --confirm --max 3`  
 Setup: [`references/vanish-lane-setup.md`](references/vanish-lane-setup.md)
 
+**Exposure scan lane (people-search discovery; no opt-outs):**  
+`bash scripts/optout_runner.sh --case me --lane scan --confirm --max 10`  
+Or: `bash scripts/exposure_scan.sh --case me --dry-run`  
+Live vanish scan: `OPACITE_EXPOSURE_EXECUTE=1 bash scripts/exposure_scan.sh --case me --no-dry-run`  
+Writes `exports/exposure_plan.json` and `exports/exposure_report.json`.
+
 **DROP dedup (after CA submission):**  
 `python3 scripts/drop_dedup.py --case me --dry-run`
 
@@ -121,7 +126,8 @@ Setup: [`references/vanish-lane-setup.md`](references/vanish-lane-setup.md)
 registry_sync.sh  →  unified-brokers.json
 registry_health.sh → registry_health.json (reachable | blocked | dead)
 optout_runner.sh --plan  →  campaign_plan.json + SQLite PLANNED events
-optout_runner.sh --confirm --lane email  →  eraser_adapter.py  →  SUBMITTED / FAILED + evidence log
+optout_runner.sh --confirm --lane email|web|vanish|scan|drop  →  lane adapters / exposure_scan
+exposure_scan.sh  →  exposure_plan.json + exposure_report.json (lane=scan events)
 manual_tasks_export.py  →  exports/manual_tasks.{json,md}
 ```
 
