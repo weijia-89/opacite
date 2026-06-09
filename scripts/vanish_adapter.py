@@ -210,14 +210,11 @@ def main() -> None:
     p.add_argument("--json", action="store_true", dest="as_json")
     args = p.parse_args()
 
-    prefix = find_vanish()
-    if not prefix:
-        raise SystemExit(INSTALL_HINT)
-
     broker_ids = [x.strip() for x in args.broker_ids.split(",") if x.strip()]
     if not broker_ids:
         raise SystemExit("error: empty --broker-ids")
 
+    # Blocked actions need no vanish binary — record MANUAL_REQUIRED and exit.
     if args.action in BLOCKED_ACTIONS:
         init_state_db(args.case)
         reason = (
@@ -234,6 +231,10 @@ def main() -> None:
             f"error: {reason}\n"
             "Use --action scan or verify. Opt-out wiring lands in Wave 2 after consent gate."
         )
+
+    prefix = find_vanish()
+    if not prefix:
+        raise SystemExit(INSTALL_HINT)
 
     dry_run = not args.execute
     if os.environ.get("OPACITE_VANISH_EXECUTE") == "1":
@@ -287,7 +288,7 @@ def main() -> None:
             submitted = list(broker_ids)
             failed = []
 
-    else:  # verify
+    else:  # verify — dry-run still invokes vanish with --no-fetch (local cache only).
         cmd = build_verify_cmd(prefix, broker_slugs, dry_run=dry_run)
         proc = run_vanish_subprocess(cmd)
         log_parts.append(f"$ {' '.join(cmd)}\n{proc.stdout}")

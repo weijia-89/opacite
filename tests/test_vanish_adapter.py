@@ -82,6 +82,23 @@ class TestVanishBlockedActions(unittest.TestCase):
                     self.assertEqual(events.get("spokeo"), "MANUAL_REQUIRED")
                     self.assertEqual(events.get("whitepages"), "MANUAL_REQUIRED")
 
+    def test_opt_out_blocked_without_vanish_installed(self) -> None:
+        with mock.patch.object(vanish_adapter, "find_vanish", return_value=None):
+            with tempfile.TemporaryDirectory() as tmp:
+                tmp_root = Path(tmp)
+                with _CaseIsolation(tmp_root, "c1"):
+                    with mock.patch.object(sys, "argv", [
+                        "vanish_adapter.py",
+                        "--case", "c1",
+                        "--broker-ids", "foo",
+                        "--action", "opt-out",
+                    ]):
+                        with self.assertRaises(SystemExit) as ctx:
+                            vanish_adapter.main()
+                        self.assertIn("consent gate", str(ctx.exception))
+                    events = latest_events("c1", lane="vanish")
+                    self.assertEqual(events.get("foo"), "MANUAL_REQUIRED")
+
     def test_llm_memory_check_blocked(self) -> None:
         with mock.patch.object(vanish_adapter, "find_vanish", return_value=["/bin/vanish"]):
             with mock.patch.object(sys, "argv", [
