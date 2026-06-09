@@ -25,7 +25,8 @@ done
 echo "== python compile =="
 "$PYTHON" -m py_compile scripts/opacite_lib.py scripts/opacite_registry.py \
   scripts/mandate_generate.py scripts/eraser_adapter.py \
-  scripts/manual_tasks_export.py scripts/drop_dedup.py scripts/symaira_adapter.py
+  scripts/manual_tasks_export.py scripts/drop_dedup.py scripts/symaira_adapter.py \
+  scripts/vanish_adapter.py
 
 echo "== unit tests =="
 "$PYTHON" -m unittest discover -s tests -p 'test_*.py' -v
