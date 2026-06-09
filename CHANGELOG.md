@@ -74,6 +74,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - SY-03: `require_mandate()` on symaira `--execute` unless `OPACITE_SKIP_MANDATE=1`
 - VN-02: vanish blocked actions recorded before CLI discovery (no false “install vanish” on opt-out)
 
+## [0.5.2] - 2026-06-10
+
+### Fixed
+
+- SY-02: web lane excludes `runner=vanish` brokers (no symaira dispatch on vanish scan targets)
+- Stale vanish opt-out blocked message (consent gate, not Wave 2)
+- DRY `run_manual_export_hint()` in `optout_runner.sh`
+
+### Added
+
+- `tests/test_optout_lane_filter.py` — lane filter + `--help` coverage
+
 ## [0.5.1] - 2026-06-10
 
 ### Added
@@ -96,6 +108,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 - Phase 5–6: `exposure_scan.sh` live mode, rescan scheduler, coverage metrics
 
+[0.5.2]: https://github.com/weijia-89/opacite/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/weijia-89/opacite/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/weijia-89/opacite/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/weijia-89/opacite/compare/v0.3.0...v0.4.0

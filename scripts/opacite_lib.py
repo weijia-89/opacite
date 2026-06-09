@@ -44,6 +44,33 @@ def load_health_report(path: Path | str = HEALTH_DEFAULT) -> dict[str, Any] | No
         return json.load(f)
 
 
+def broker_matches_lane(broker: dict[str, Any], lane: str) -> bool:
+    """Return True when broker belongs on the given optout_runner lane."""
+    if not lane:
+        return True
+    process = broker.get("process")
+    runner = broker.get("runner")
+    if lane == "email":
+        return process == "email-opt-out" or runner == "eraser"
+    if lane == "web":
+        # symaira web-form path — exclude vanish/eraser/drop runners (SY-02).
+        if runner in ("vanish", "eraser", "drop"):
+            return False
+        return process in (
+            "direct-form",
+            "search-for-removal",
+            "opt-out-search",
+            "captcha-gated",
+        )
+    if lane == "drop":
+        return bool(broker.get("drop_eligible")) or process == "drop-centralized"
+    if lane == "scan":
+        return broker.get("broker_class") == "people-search"
+    if lane == "vanish":
+        return runner == "vanish" or process in ("search-for-removal", "opt-out-search")
+    return True
+
+
 def health_status_by_broker(report: dict[str, Any] | None) -> dict[str, str]:
     if not report:
         return {}
