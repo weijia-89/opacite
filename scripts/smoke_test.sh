@@ -14,7 +14,8 @@ done
 echo "== python compile =="
 python3 -m py_compile scripts/opacite_lib.py scripts/opacite_registry.py \
   scripts/mandate_generate.py scripts/eraser_adapter.py \
-  scripts/manual_tasks_export.py scripts/symaira_adapter.py
+  scripts/manual_tasks_export.py scripts/symaira_adapter.py \
+  scripts/vanish_adapter.py
 
 echo "== unit tests =="
 python3 -m unittest discover -s tests -p 'test_*.py' -v
