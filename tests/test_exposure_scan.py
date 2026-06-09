@@ -184,5 +184,73 @@ class TestExposureScanDelta(unittest.TestCase):
                 self.assertEqual(out["scan_target_count"], 1)
 
 
+class TestExposureScanVerify(unittest.TestCase):
+    def test_verify_dry_run_delegates_and_writes_report(self) -> None:
+        reg = ROOT / "tests/fixtures/scan-registry-mini.json"
+        fake_result = {
+            "exit_code": 0,
+            "stdout": json.dumps({"submitted": ["ps1"], "failed": []}),
+            "stderr": "",
+            "result": {"submitted": ["ps1"], "failed": []},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_root = Path(tmp)
+            slug = "scan-verify"
+            with _CaseIsolation(tmp_root, slug):
+                with mock.patch.object(
+                    exposure_scan,
+                    "delegate_vanish_verify",
+                    return_value=fake_result,
+                ) as deleg:
+                    out = exposure_scan.run_verify(
+                        case=slug,
+                        registry_path=reg,
+                        dry_run=True,
+                        max_n=5,
+                    )
+                    deleg.assert_called_once()
+                report = json.loads(Path(out["report_path"]).read_text())
+                self.assertEqual(report["mode"], "verify")
+                self.assertTrue(report["dry_run"])
+                self.assertEqual(report["verified_count"], 1)
+                plan = Path(out["plan_path"])
+                self.assertTrue(plan.is_file())
+                self.assertIn("verify", plan.name)
+
+    def test_verify_main_dry_run_argv(self) -> None:
+        reg = ROOT / "tests/fixtures/scan-registry-mini.json"
+        slug = "scan-verify-cli"
+        fake_result = {
+            "exit_code": 0,
+            "result": {"submitted": ["ps1"], "failed": []},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_root = Path(tmp)
+            with _CaseIsolation(tmp_root, slug):
+                with mock.patch.object(
+                    exposure_scan,
+                    "delegate_vanish_verify",
+                    return_value=fake_result,
+                ):
+                    with mock.patch.object(
+                        sys,
+                        "argv",
+                        [
+                            "exposure_scan.py",
+                            "--case",
+                            slug,
+                            "--verify",
+                            "--dry-run",
+                            "--registry",
+                            str(reg),
+                        ],
+                    ):
+                        exposure_scan.main()
+                report = tmp_root / "localonly/cases/scan-verify-cli/exports/exposure_report.json"
+                self.assertTrue(report.is_file())
+                data = json.loads(report.read_text())
+                self.assertEqual(data["mode"], "verify")
+
+
 if __name__ == "__main__":
     unittest.main()
