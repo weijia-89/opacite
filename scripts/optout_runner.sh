@@ -258,7 +258,7 @@ if confirm:
         sys.exit(0)
     if lane == "scan":
         scan_sh = os.path.join(skill_root, "scripts", "exposure_scan.sh")
-        cmd = [scan_sh, "--case", case]
+        cmd = [scan_sh, "--case", case, "--registry", registry]
         if confirm and os.environ.get("OPACITE_EXPOSURE_EXECUTE") == "1":
             cmd.append("--no-dry-run")
         else:

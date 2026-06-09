@@ -1,0 +1,21 @@
+{
+  "count": 2,
+  "brokers": [
+    {
+      "id": "ps1",
+      "name": "Fixture People Search A",
+      "broker_class": "people-search",
+      "process": "search-for-removal",
+      "runner": "vanish",
+      "automation_tier": "B"
+    },
+    {
+      "id": "ps2",
+      "name": "Fixture People Search B",
+      "broker_class": "people-search",
+      "process": "direct-form",
+      "runner": "symaira",
+      "automation_tier": "B"
+    }
+  ]
+}
