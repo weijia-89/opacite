@@ -1,7 +1,35 @@
 # opacite roadmap
 
-**Status:** 2026-06-11 · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
+**Status:** 2026-06-12 · **Shipped:** `v0.5.3` (`0f8cbe3`) · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
 **Not legal advice.** **Not a removal guarantee.**
+
+---
+
+## Gap inventory (adversarial audit — 2026-06-12)
+
+Brutal truth table after Wave 3 landed and Wave 4 preflight (`localonly/trainer-reviews/code-review-wave4-preflight-2026-06-12.md`). Rows marked **doc lie** were previously overstated in this file or user-facing copy.
+
+| Gap | Severity | Honest status | Wave / owner |
+|-----|----------|---------------|--------------|
+| Rescan scheduler (60d / 90d) | P1 | **Shipped** — `rescan_scheduler.sh` dry-run planner + launchd/cron docs (PR pending) | Wave 4 · `rescan-scheduler` ✅ |
+| Verify wired to exposure/rescan | P1 | **Missing** — `vanish_adapter --action verify` exists; not in `exposure_scan` / scan confirm path | Wave 4 · `exposure-verify-wire` |
+| Verify dry-run without vanish CLI | P1 | **Broken vs scan pattern** — verify exits `INSTALL_HINT`; scan dry-run is CI-safe | Wave 4 · `exposure-verify-wire` |
+| `--delta-only` report diff | P2 | **Seed only** — filters `RE_LISTED`; no diff vs prior `exposure_report.json` | Wave 4 · `exposure-delta-diff` |
+| `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Schema only** — no production `append_event` for exposure terminal states (**doc lie** on 5.2 ✅) | Wave 4 · verify + delta agents |
+| `exposure_status` ≠ `request_status` | P2 | **Principle #5 doc-only** — verify writes `APPROVED`/`SUBMITTED`, not exposure KPIs | Wave 4 · `exposure-verify-wire` |
+| Quarterly operator ritual | P3 | **Missing** from `SKILL.md` | Wave 4 · `roadmap-ritual-sync` |
+| `status_summary()` lane partition | P2 | **Deferred** — global per-broker counts blur multi-lane cases | Post–Wave 4 |
+| `drop_dedup` auto-hook in email `--plan` | P4 | **Manual** — operator runs `drop_dedup.py` | Out of scope |
+| Phase 3.5 IMAP triage | — | **Not started** | Phase 3.5 |
+| Phase 6 automation ceiling | — | **Not started** — open bet still **speculative** | Phase 6 |
+| Incogni parity claim | — | **Not met** — no unattended rescan loop, no exposure_status KPI, no dashboard | Phase 5–6 |
+
+**What v0.5.3 actually ships:** dry-run exposure scan via `--lane scan --confirm`; `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite `PLANNED`/`APPROVED`/`MANUAL_REQUIRED`; live vanish **scan** delegation when `OPACITE_EXPOSURE_EXECUTE=1`. That is **discovery planning**, not steady-state rescan.
+
+**Kill / downgrade triggers (unchanged):**
+
+- Phase 6.2 shows >35% top-50 people-search Tier C with no email fallback → scope to email + DROP + guided forms.
+- Any default CapSolver / cloud LLM triage → **reject** (iron law).
 
 ---
 
@@ -45,9 +73,9 @@ gantt
   Web + vanish + playbooks      :done, p3, 2026-06-10, 2026-06-11
   section Active
   DROP workflow + dedup         :active, p4, 2026-06-10, 2026-09-15
-  Exposure scan + scan lane     :active, p5a, 2026-06-11, 2026-09-01
+  Phase 5 Wave 4 rescan loop    :active, p5w4, 2026-06-12, 2026-06-20
   section Steady state
-  Rescan scheduler 60/90        :p5b, 2026-09-01, 2026-10-31
+  Exposure verify + delta diff  :p5b, 2026-06-12, 2026-07-15
   Coverage metrics + audit UI   :p6, 2026-10-01, 2026-12-31
 ```
 
@@ -144,21 +172,28 @@ gantt
 
 ---
 
-## Phase 5 — Discovery, verify & rescan (steady state) — **active**
+## Phase 5 — Discovery, verify & rescan (steady state) — **active (Wave 4)**
 
-**Goal:** Match Incogni loop: scan → request → verify → rescan.
+**Goal:** Match Incogni loop: scan → request → verify → rescan. **Honest progress:** ~40% — discovery dry-run ships; verify, delta diff, scheduler, and exposure KPIs do not.
 
 | # | Work item | Acceptance | Status |
 |---|-----------|------------|--------|
-| 5.1 | `exposure_scan.sh` live mode + `optout_runner --lane scan --confirm` | `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite PLANNED/APPROVED; vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1` | ✅ Wave 3 (`exposure_scan.py`, PR #2–#3); match detail from vanish JSON when installed |
-| 5.2 | Delta scan: only re-queue RE_LISTED brokers | `--delta-only` filters scan-lane `RE_LISTED` | ✅ seed (`exposure_scan.py`); full diff vs last `exposure_report.json` deferred |
-| 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | launchd/cron template in repo | ⏳ |
-| 5.4 | vanish-style verify pass for sample brokers | `exposure_status` updated independently of `request_status` | ⏳ `vanish_adapter --action verify` exists; exposure lane wiring pending |
-| 5.5 | Quarterly operator review ritual (15 min) | Documented in SKILL.md | ⏳ |
+| 5.1 | `exposure_scan.sh` live mode + `optout_runner --lane scan --confirm` | `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite PLANNED/APPROVED; vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1` | ✅ Wave 3 (`v0.5.3`); match detail from vanish JSON when installed |
+| 5.2 | Delta scan: re-queue only changed / relisted brokers | `--delta-only` skips unchanged vs last `exposure_report.json`; re-queue `RE_LISTED` + new/changed matches | 🟡 **partial** — RE_LISTED filter seed only; **no report diff**; **no production writer** for `RE_LISTED`/`VERIFIED_REMOVED` |
+| 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | `rescan_scheduler.sh --dry-run` prints next due; launchd/cron templates in `references/rescan-scheduler.md` | ✅ Wave 4 agent 1 (`rescan_scheduler.py`); operator still runs suggested commands manually |
+| 5.4 | vanish-style verify pass for sample brokers | `--verify` or scan-lane verify path; `exposure_status` (`VERIFIED_REMOVED`/`RE_LISTED`) independent of `request_status` (`SUBMITTED` on email/web) | ⏳ **Wave 4 agent 2** — adapter exists; wiring + CI-safe dry-run pending |
+| 5.5 | Quarterly operator review ritual (15 min) | Documented in `SKILL.md` + ROADMAP cross-link | ⏳ **Wave 4 agent 4** |
 
-**Verified (2026-06-11):** Dry-run scan needs no vanish CLI (CI-safe). Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.
+**Verified (2026-06-12):** Scan dry-run needs no vanish CLI (CI-safe). Verify dry-run **does not** — asymmetry is a known P1 gap. Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.
 
-**Exit:** Second quarterly rescan runs unattended except operator approval for new submissions. **Partial:** operator can `--lane scan --confirm` dry-run today; live vanish scan requires local install + `OPACITE_EXPOSURE_EXECUTE=1`.
+**Phase 5 exit criteria (falsifiable):**
+
+1. `bash scripts/rescan_scheduler.sh --case <slug> --dry-run` → exit 0, prints 60d/90d due dates, no network.
+2. `bash scripts/exposure_scan.sh --case <slug> --verify --dry-run` → exit 0 without vanish installed; updates `exposure_report.json`.
+3. Second scan with `--delta-only` skips unchanged brokers (fixture or temp case).
+4. Operator can run quarterly ritual from `SKILL.md` without opening ROADMAP.
+
+**Current exit:** **Not met** — operator can `--lane scan --confirm` dry-run only.
 
 ---
 
@@ -218,12 +253,19 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 ## Immediate next actions (this week)
 
-1. Operator: first live email batch — `keychain_smtp.sh --check` → `--confirm --lane email --max 5` (dry-run default until eraser configured).
-2. Operator: exposure scan dry-run — `optout_runner.sh --case <slug> --lane scan --confirm`; live vanish scan with `OPACITE_EXPOSURE_EXECUTE=1` after vanish install.
-3. Operator: `optout_runner.sh --lane web|vanish --confirm` dry-run; live execute via `OPACITE_SYMAIRA_EXECUTE=1` / `OPACITE_VANISH_EXECUTE=1`.
-4. If CA resident: DROP submission before **Aug 1, 2026** enforcement; then `drop_dedup.py --case <slug> --dry-run`.
-5. Phase 5.3: ship rescan scheduler template (launchd/cron).
-6. Phase 6.1: Piranesi → Opus automation-ceiling ingest when operator ready.
+**Wave 4 (sequential — manifest `localonly/daily/2026-06-12.md`):**
+
+1. `rescan-scheduler` → `rescan_scheduler.sh` + launchd/cron docs.
+2. `exposure-verify-wire` → `--verify` path + CI-safe dry-run.
+3. `exposure-delta-diff` → report diff + terminal exposure events.
+4. `roadmap-ritual-sync` → SKILL quarterly ritual + ROADMAP truth pass.
+5. `skill-version-bump` → `v0.5.4` + deai on user-facing prose.
+
+**Operator (parallel, not blocked on Wave 4):**
+
+1. Exposure scan dry-run — `optout_runner.sh --case <slug> --lane scan --confirm`.
+2. If CA resident: DROP before **Aug 1, 2026**; then `drop_dedup.py --case <slug> --dry-run`.
+3. Phase 6.1: Piranesi → Opus automation-ceiling ingest when ready.
 
 ---
 
@@ -237,3 +279,4 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 | `references/legal-constraints.md` | DROP/CCPA/GDPR constraints |
 | `localonly/archive/research/` | Archived Palamedes + lane research (not operator-facing) |
 | `references/comparable-foss-repos.md` | Operator-facing FOSS index |
+| `references/rescan-scheduler.md` | 60d/90d cadence + launchd/cron templates |
