@@ -11,20 +11,20 @@ Brutal truth table after Wave 3 landed and Wave 4 preflight (`localonly/trainer-
 
 | Gap | Severity | Honest status | Wave / owner |
 |-----|----------|---------------|--------------|
-| Rescan scheduler (60d / 90d) | P1 | **Shipped** — `rescan_scheduler.sh` dry-run planner + launchd/cron docs (PR pending) | Wave 4 · `rescan-scheduler` ✅ |
-| Verify wired to exposure/rescan | P1 | **Shipped** — `exposure_scan.sh --verify`; `OPACITE_EXPOSURE_VERIFY=1` on scan confirm (PR pending) | Wave 4 · `exposure-verify-wire` ✅ |
-| Verify dry-run without vanish CLI | P1 | **Fixed** — verify dry-run CI-safe like scan | Wave 4 · `exposure-verify-wire` ✅ |
-| `--delta-only` report diff | P2 | **Shipped** — diffs `target_broker_ids` vs prior report (PR pending) | Wave 4 · `exposure-delta-diff` ✅ |
-| `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Partial** — live verify on lane=`scan` writes terminal states | Wave 4 · `exposure-verify-wire` ✅ |
-| `exposure_status` ≠ `request_status` | P2 | **Principle #5 doc-only** — verify writes `APPROVED`/`SUBMITTED`, not exposure KPIs | Wave 4 · `exposure-verify-wire` |
-| Quarterly operator ritual | P3 | **Missing** from `SKILL.md` | Wave 4 · `roadmap-ritual-sync` |
+| Rescan scheduler (60d / 90d) | P1 | **Shipped** — `rescan_scheduler.sh` (#6) | Wave 4 · `rescan-scheduler` ✅ |
+| Verify wired to exposure/rescan | P1 | **Shipped** — `exposure_scan.sh --verify` (#7) | Wave 4 · `exposure-verify-wire` ✅ |
+| Verify dry-run without vanish CLI | P1 | **Fixed** — CI-safe like scan (#7) | Wave 4 · `exposure-verify-wire` ✅ |
+| `--delta-only` report diff | P2 | **Shipped** — `target_broker_ids` diff (#9) | Wave 4 · `exposure-delta-diff` ✅ |
+| `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Shipped** — live verify on lane=`scan` (#7) | Wave 4 · `exposure-verify-wire` ✅ |
+| `exposure_status` ≠ `request_status` | P2 | **Partial** — lane=`scan` verify uses exposure terminal states; email/web still `SUBMITTED` | Documented in SKILL ritual |
+| Quarterly operator ritual | P3 | **Shipped** — `SKILL.md` §Quarterly operator ritual | Wave 4 · `roadmap-ritual-sync` ✅ |
 | `status_summary()` lane partition | P2 | **Deferred** — global per-broker counts blur multi-lane cases | Post–Wave 4 |
 | `drop_dedup` auto-hook in email `--plan` | P4 | **Manual** — operator runs `drop_dedup.py` | Out of scope |
 | Phase 3.5 IMAP triage | — | **Not started** | Phase 3.5 |
 | Phase 6 automation ceiling | — | **Not started** — open bet still **speculative** | Phase 6 |
-| Incogni parity claim | — | **Not met** — no unattended rescan loop, no exposure_status KPI, no dashboard | Phase 5–6 |
+| Incogni parity claim | — | **Partial** — scheduler + verify + delta on `main`; no unattended outbound loop, no HTML dashboard | Phase 6 |
 
-**What v0.5.3 actually ships:** dry-run exposure scan via `--lane scan --confirm`; `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite `PLANNED`/`APPROVED`/`MANUAL_REQUIRED`; live vanish **scan** delegation when `OPACITE_EXPOSURE_EXECUTE=1`. That is **discovery planning**, not steady-state rescan.
+**What `main` ships after Wave 4 agents 1–3 (pre–v0.5.4 tag):** rescan planner (`rescan_scheduler.sh`); exposure scan + `--verify` + `--delta-only`; lane=`scan` events including `VERIFIED_REMOVED`/`RE_LISTED` on live verify. Operator still approves every outbound lane; scheduler prints suggested commands only.
 
 **Kill / downgrade triggers (unchanged):**
 
@@ -174,7 +174,7 @@ gantt
 
 ## Phase 5 — Discovery, verify & rescan (steady state) — **active (Wave 4)**
 
-**Goal:** Match Incogni loop: scan → request → verify → rescan. **Honest progress:** ~40% — discovery dry-run ships; verify, delta diff, scheduler, and exposure KPIs do not.
+**Goal:** Match Incogni loop: scan → request → verify → rescan. **Honest progress:** ~85% — Wave 4 agents 1–3 on `main`; ritual doc (5.5) + v0.5.4 tag remain.
 
 | # | Work item | Acceptance | Status |
 |---|-----------|------------|--------|
@@ -182,9 +182,9 @@ gantt
 | 5.2 | Delta scan: re-queue only changed / relisted brokers | `--delta-only` skips unchanged vs last `exposure_report.json`; re-queue `RE_LISTED` + new brokers | ✅ Wave 4 agent 3 — report diff via `target_broker_ids`; `RE_LISTED`/`VERIFIED_REMOVED` writers on verify live path |
 | 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | `rescan_scheduler.sh --dry-run` prints next due; launchd/cron templates in `references/rescan-scheduler.md` | ✅ Wave 4 agent 1 (`rescan_scheduler.py`); operator still runs suggested commands manually |
 | 5.4 | vanish-style verify pass for sample brokers | `--verify` or scan-lane verify path; `exposure_status` (`VERIFIED_REMOVED`/`RE_LISTED`) independent of `request_status` (`SUBMITTED` on email/web) | ✅ Wave 4 agent 2 — dry-run + live path on lane=`scan`; vanish lane verify unchanged |
-| 5.5 | Quarterly operator review ritual (15 min) | Documented in `SKILL.md` + ROADMAP cross-link | ⏳ **Wave 4 agent 4** |
+| 5.5 | Quarterly operator review ritual (15 min) | Documented in `SKILL.md` + ROADMAP cross-link | ✅ Wave 4 agent 4 — `SKILL.md` §Quarterly operator ritual |
 
-**Verified (2026-06-12):** Scan dry-run needs no vanish CLI (CI-safe). Verify dry-run **does not** — asymmetry is a known P1 gap. Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.
+**Verified (2026-06-12):** Scan and verify dry-run need no vanish CLI (CI-safe). Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.
 
 **Phase 5 exit criteria (falsifiable):**
 
@@ -193,7 +193,7 @@ gantt
 3. Second scan with `--delta-only` skips unchanged brokers (fixture or temp case).
 4. Operator can run quarterly ritual from `SKILL.md` without opening ROADMAP.
 
-**Current exit:** **Not met** — operator can `--lane scan --confirm` dry-run only.
+**Current exit:** **Partial** — criteria 1–3 met on `main`; criterion 4 met when `SKILL.md` ritual ships (agent 4). Full steady-state still needs operator `--confirm` for outbound lanes and Phase 6 metrics honesty.
 
 ---
 
@@ -255,11 +255,11 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 **Wave 4 (sequential — manifest `localonly/daily/2026-06-12.md`):**
 
-1. `rescan-scheduler` → `rescan_scheduler.sh` + launchd/cron docs.
-2. `exposure-verify-wire` → `--verify` path + CI-safe dry-run.
-3. `exposure-delta-diff` → report diff + terminal exposure events.
-4. `roadmap-ritual-sync` → SKILL quarterly ritual + ROADMAP truth pass.
-5. `skill-version-bump` → `v0.5.4` + deai on user-facing prose.
+1. ~~`rescan-scheduler`~~ ✅ #6
+2. ~~`exposure-verify-wire`~~ ✅ #7
+3. ~~`exposure-delta-diff`~~ ✅ #9
+4. `roadmap-ritual-sync` → SKILL quarterly ritual + ROADMAP truth pass (this PR).
+5. `skill-version-bump` → `v0.5.4` + deai on user-facing prose (next PR only).
 
 **Operator (parallel, not blocked on Wave 4):**
 
