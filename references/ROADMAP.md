@@ -1,6 +1,6 @@
 # opacite roadmap
 
-**Status:** 2026-06-07 · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
+**Status:** 2026-06-10 · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
 **Not legal advice.** **Not a removal guarantee.**
 
 ---
@@ -40,13 +40,11 @@ gantt
   dateFormat YYYY-MM-DD
   section Done
   Research + skill scaffold     :done, p0, 2026-06-01, 2026-06-07
-  section Foundation
-  Registry merge + plan runner  :active, p1, 2026-06-08, 2026-06-28
-  section Core lanes
-  Vault + mandate + email lane  :p2, 2026-06-15, 2026-07-31
-  Web forms + manual queue      :p3, 2026-07-01, 2026-08-31
-  section CA lever
-  DROP workflow + dedup         :p4, 2026-07-15, 2026-09-15
+  Registry merge + plan runner  :done, p1, 2026-06-08, 2026-06-10
+  Vault + mandate + email lane  :done, p2, 2026-06-08, 2026-06-10
+  section Active
+  Web + vanish + playbooks      :active, p3, 2026-06-10, 2026-08-31
+  DROP workflow + dedup         :active, p4, 2026-06-10, 2026-09-15
   section Steady state
   Rescan scheduler 60/90        :p5, 2026-09-01, 2026-10-31
   Coverage metrics + audit UI   :p6, 2026-10-01, 2026-12-31
@@ -110,34 +108,34 @@ gantt
 
 ---
 
-## Phase 3 — Web & browser-assisted lane (M3)
+## Phase 3 — Web & browser-assisted lane (M3) — **active**
 
 **Goal:** Cover people-search and form brokers (Tier B); formalize manual queue (Tier C).
 
-| # | Work item | Acceptance |
-|---|-----------|------------|
-| 3.1 | symaira adapter wrapper (`plan execute` with consent gate) | Web-form brokers run with operator `grant` |
-| 3.2 | vanish integration for guided opt-out URLs (top 58) | Opens browser + evidence path in SQLite |
-| 3.3 | Port/reference AIR + Privotron + data-broker-optout playbooks as opacite playbooks | ≥20 people-search sites with documented process |
-| 3.4 | `manual_tasks` queue (MD + JSON): IDV, CAPTCHA, broken URL | Never stores ID images in repo |
-| 3.5 | Inbox triage v1: IMAP classify `confirm_link` / `removed_ack` / `need_more_info` | Operator reviews; optional offline LLM only |
+| # | Work item | Acceptance | Status |
+|---|-----------|------------|--------|
+| 3.1 | symaira adapter (`run-web-form` per broker + consent gate) | Web-form brokers run with `OPACITE_SYMAIRA_EXECUTE=1` | ✅ `symaira_adapter.py`; wired in `optout_runner --lane web` |
+| 3.2 | vanish integration (scan/verify; opt-out after consent gate) | Evidence path in SQLite; `--lane vanish` in runner | ✅ `vanish_adapter.py` scan/verify; opt-out blocked Phase 3 |
+| 3.3 | Operator playbooks (people-search / form brokers) | ≥20 sites with documented process | ✅ 25 playbooks + `playbook-index.md` |
+| 3.4 | `manual_tasks` queue (MD + JSON): IDV, CAPTCHA, broken URL | Never stores ID images in repo | ✅ `manual_tasks_export.py` (post-confirm hint on web/vanish/email) |
+| 3.5 | Inbox triage v1: IMAP classify `confirm_link` / `removed_ack` / `need_more_info` | Operator reviews; optional offline LLM only | ⏳ Phase 3.5 |
 
 **Kill gate:** Do not enable CapSolver by default (cost, ToS, telemetry). Manual-first.
 
-**Exit:** One end-to-end campaign across email + 10 web brokers with manual queue populated for failures.
+**Exit:** One end-to-end campaign across email + 10 web brokers with manual queue populated for failures. **Partial:** lanes invocable from `optout_runner.sh`; live symaira/vanish execute remains operator opt-in.
 
 ---
 
-## Phase 4 — California DROP integration
+## Phase 4 — California DROP integration — **active**
 
 **Goal:** Single-shot deletion for all registered CA data brokers when enforcement is live.
 
-| # | Work item | Acceptance |
-|---|-----------|------------|
-| 4.1 | DROP consumer flow doc + checklist (primary: privacy.ca.gov when accessible) | Operator steps for resident + authorized agent |
-| 4.2 | Dedup strategy: DROP brokers ⊖ email campaign overlap | No duplicate requests same week without operator opt-in |
-| 4.3 | Calendar reminder: **Aug 1, 2026** enforcement window | Campaign template ready before date |
-| 4.4 | Track DROP submission separately in SQLite | `lane=drop` events distinct from eraser |
+| # | Work item | Acceptance | Status |
+|---|-----------|------------|--------|
+| 4.1 | DROP consumer flow doc + checklist (primary: privacy.ca.gov when accessible) | Operator steps for resident + authorized agent | ✅ `drop-workflow.md`, `drop_lane.sh` |
+| 4.2 | Dedup strategy: DROP brokers ⊖ email campaign overlap | No duplicate requests same week without operator opt-in | ✅ `drop_dedup.py` (operator-run before email batch) |
+| 4.3 | Calendar reminder: **Aug 1, 2026** enforcement window | Campaign template ready before date | ⏳ operator calendar |
+| 4.4 | Track DROP submission separately in SQLite | `lane=drop` events distinct from eraser | ✅ `lane=drop` aggregate event |
 
 **Verified:** 545 registered brokers (Jan 2026); one request applies to all registered (Q10–Q11). Non-registered brokers still need Phase 2–3 (Q13).
 
@@ -217,10 +215,11 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 ## Immediate next actions (this week)
 
-1. **Phase 3 Wave 2** — `optout-lane-wire`, `roadmap-sync`, `skill-version-bump` (see `localonly/daily/2026-06-10.md`).
-2. Operator: Keychain SMTP or `eraser init` → first live `--confirm --max 5` email batch.
-3. If CA resident: pre-build DROP submission before **Aug 1, 2026** enforcement; run `drop_dedup.py` after submit.
-4. Paste Piranesi packet into Opus when ready for Phase 6.1 automation-ceiling ingest.
+1. Operator: first live email batch — `keychain_smtp.sh --check` → `--confirm --lane email --max 5` (skipped in Wave 2; dry-run default).
+2. Operator: `optout_runner.sh --lane web|vanish --confirm` dry-run on case `me`; install symaira/vanish only when ready for live execute env vars.
+3. If CA resident: DROP submission before **Aug 1, 2026** enforcement; then `drop_dedup.py --case <slug> --dry-run`.
+4. Phase 5: `exposure_scan.sh` live mode + `--lane scan --confirm` wiring.
+5. Phase 6.1: Piranesi → Opus automation-ceiling ingest when operator ready.
 
 ---
 
