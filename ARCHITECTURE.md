@@ -80,7 +80,7 @@ Schema: [`schemas/campaign.sql`](schemas/campaign.sql). Helpers: [`scripts/opaci
 |---------|--------|-------|
 | `email-opt-out` | eraser via `eraser_adapter.py` | **2 (done)** |
 | `direct-form` / people-search | symaira, vanish | 3 (done) |
-| people-search discovery | `exposure_scan.py` + `--lane scan` | 5 (partial) |
+| people-search discovery + rescan | `exposure_scan.py`, `rescan_scheduler.sh`, `--lane scan` | 5 (steady-state; operator confirms outbound) |
 | `drop-centralized` | `drop_lane.sh` + operator portal | 4 |
 | `id-verification` | manual queue only | never auto |
 

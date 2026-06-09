@@ -2,7 +2,7 @@
 name: opacite
 description: |
   Local-first orchestration for automated personal-data removal from data brokers and people-search sites without cloud telemetry. Composes FOSS runners (eraser, symaira-eraseme, vanish, auto-identity-remove) with encrypted on-device profile vault, exposure scan, opt-out campaign planner, inbox triage, and CA DROP integration. Human-in-loop before outbound requests. Triggers opacite, opacité, opacity, data broker removal, opt out of data brokers, remove my info from people search, PII removal, Incogni alternative, DeleteMe DIY, personal data erasure, DROP deletion request.
-version: 0.5.3
+version: 0.5.4
 type: project-skill
 license: MIT
 composes:
@@ -31,7 +31,7 @@ constraints:
 ## Invocation preamble
 
 ```
-opacite v0.5.3 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
+opacite v0.5.4 · jurisdiction={US|EU|UK|multi} · mode={plan|scan|campaign|triage|rescan|audit} · stakes=L2
 ```
 
 ## Iron laws
@@ -154,6 +154,7 @@ When routing to **piranesi** for ChatPRD/Opus:
 
 ## Version history
 
+- **0.5.4** (2026-06-12): Phase 5 Wave 4 — rescan scheduler, `--verify`, `--delta-only` report diff, quarterly operator ritual, ROADMAP gap audit.
 - **0.5.3** (2026-06-11): Phase 5 Wave 3 — exposure scan live path, `--lane scan --confirm`, `exposure_report.json`, lane=`scan` SQLite events.
 - **0.5.2** (2026-06-10): SY-02 web/vanish lane split; trainer PR review helper.
 - **0.5.1** (2026-06-10): vanish lane wired in optout_runner.

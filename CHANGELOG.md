@@ -8,8 +8,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Planned
 
-- Phase 5.3–5.5: rescan scheduler, exposure verify wiring, quarterly operator ritual
-- Phase 6: automation ceiling table, local audit UI
+- Phase 6: automation ceiling table, local audit UI, measured coverage claims
+
+## [0.5.4] - 2026-06-12
+
+### Added
+
+- `rescan_scheduler.sh` / `rescan_scheduler.py` — 60d people-search / 90d private-db dry-run planner; `references/rescan-scheduler.md` (launchd + cron)
+- `exposure_scan.sh --verify` — vanish verify sample on lane=`scan`; `OPACITE_EXPOSURE_VERIFY=1` on `--lane scan --confirm`
+- `--delta-only` — skips unchanged brokers vs prior `exposure_report.json` (`target_broker_ids` diff)
+- `SKILL.md` §Quarterly operator ritual (~15 min)
+- `tests/test_rescan_scheduler.py`; exposure verify tests in `test_exposure_scan.py` / `test_vanish_adapter.py`
+
+### Changed
+
+- `references/ROADMAP.md` — adversarial gap inventory; Phase 5 §5.1–5.5 truth after Wave 4
+- Live verify on lane=`scan` records `VERIFIED_REMOVED` / `RE_LISTED` (exposure_status) separately from email/web `SUBMITTED`
+- Verify dry-run works without vanish CLI installed (CI-safe, matches scan pattern)
 
 ## [0.5.3] - 2026-06-11
 
@@ -127,6 +142,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - Initial skill scaffold, broker taxonomy, comparable FOSS research
 - `SKILL.md` v0.4.0 contract surface
 
+[0.5.4]: https://github.com/weijia-89/opacite/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/weijia-89/opacite/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/weijia-89/opacite/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/weijia-89/opacite/compare/v0.5.0...v0.5.1
