@@ -2,17 +2,15 @@ name: ci
 
 on:
   push:
-    paths:
-      - 'scripts/**'
-      - 'schemas/**'
-      - 'tests/**'
-      - '.github/workflows/ci.yml'
+    branches: [main]
   pull_request:
-    paths:
-      - 'scripts/**'
-      - 'schemas/**'
-      - 'tests/**'
-      - '.github/workflows/ci.yml'
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
 
 jobs:
   smoke:
@@ -26,3 +24,29 @@ jobs:
         run: pip install pyyaml
       - name: Smoke tests
         run: bash scripts/smoke_test.sh
+      - name: Trainer PR review gate self-test
+        run: bash scripts/test_ci_trainer_pr_review_gate.sh
+      - name: Trainer gate rerun self-test
+        run: bash scripts/test_trainer_pr_review_gate_rerun.sh
+
+  trainer-pr-review-gate:
+    name: Trainer PR review comment gate
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Require trainer code-review comment on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/ci-trainer-pr-review-gate.sh \
+            "${{ github.event.pull_request.number }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            "${{ github.event.pull_request.head.ref }}" \
+            "${{ github.repository }}"
