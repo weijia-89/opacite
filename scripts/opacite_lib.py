@@ -180,18 +180,27 @@ def append_event(
 
 
 def latest_events(slug: str, lane: str | None = None) -> dict[str, str]:
-    """broker_id → latest event name."""
+    """broker_id → latest event name (per lane when lane is set).
+
+    When lane is set, partition by (broker_id, lane) so a web SUBMITTED does not
+    mask an email PLANNED on the same broker (OB-01 / append_planned_batch).
+    """
     init_state_db(slug)
     conn = sqlite3.connect(state_db_path(slug))
     try:
-        if lane:
+        if lane is not None:
+            # COALESCE(lane,'') matches rows where lane IS NULL only when lane arg is ''.
             rows = conn.execute(
                 """
                 SELECT broker_id, event FROM (
-                  SELECT broker_id, event, lane,
-                         ROW_NUMBER() OVER (PARTITION BY broker_id ORDER BY id DESC) AS rn
-                  FROM broker_events WHERE case_slug = ?
-                ) e WHERE e.rn = 1 AND (lane IS NULL OR lane = ?)
+                  SELECT broker_id, event,
+                         ROW_NUMBER() OVER (
+                           PARTITION BY broker_id, COALESCE(lane, '')
+                           ORDER BY id DESC
+                         ) AS rn
+                  FROM broker_events
+                  WHERE case_slug = ? AND COALESCE(lane, '') = ?
+                ) e WHERE e.rn = 1
                 """,
                 (slug, lane),
             ).fetchall()

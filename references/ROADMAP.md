@@ -217,10 +217,11 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 
 ## Immediate next actions (this week)
 
-1. Finish Phase 1.2 link-check on merged registry.
-2. Implement Phase 2.1 vault encryption before any `--confirm`.
-3. Paste Piranesi packet into Opus; schedule Pattern 8 ingest for Phase 6.1.
-4. If operator is CA resident: pre-build DROP checklist for Aug 2026.
+1. **Phase 3 Wave 1** — see `localonly/daily/2026-06-10.md` (symaira-harden, vanish-lane, playbook-seed, drop-dedup).
+2. Operator: Keychain SMTP or `eraser init` → first live `--confirm --max 5` email batch.
+3. Merge Wave 1 worktrees → smoke test → trainer review before push.
+4. If CA resident: pre-build DROP submission before **Aug 1, 2026** enforcement.
+5. Paste Piranesi packet into Opus when ready for Phase 6.1 automation-ceiling ingest.
 
 ---
 

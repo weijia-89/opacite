@@ -1,5 +1,7 @@
 # Piranesi export: opacite external deep research
 
+> **Compliance:** Must satisfy **piranesi v0.2 full-context iron law** before paste. This file is a **legacy template** — refresh verbatim embeds or use `references/piranesi-phase3-chatprd-packets.md` as the reference shape. **Do not paste** until Full Context Gate passes (`piranesi.skill/references/checklist.md`).
+
 **Paste into ChatPRD web or Opus 4.6.** No repo access. Return artifact to `palamedes` Pattern 8 ingest.
 
 ---

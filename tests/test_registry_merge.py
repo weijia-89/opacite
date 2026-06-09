@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from opacite_lib import (  # noqa: E402
+    append_event,
     append_planned_batch,
+    latest_events,
     status_summary,
 )
 from opacite_registry import (  # noqa: E402
@@ -131,6 +133,26 @@ class TestPlanIdempotency(unittest.TestCase):
                 self.assertEqual(n2, 0)
                 summary = status_summary(slug)
                 self.assertEqual(summary.get("PLANNED"), 2)
+            finally:
+                lib.SKILL_ROOT = orig_root
+
+    def test_replan_per_lane_independent(self) -> None:
+        """Latest event on web lane must not suppress email PLANNED idempotency."""
+        with tempfile.TemporaryDirectory() as tmp:
+            slug = "lane-test"
+            Path(tmp).joinpath("cases", slug).mkdir(parents=True)
+            import opacite_lib as lib
+
+            orig_root = lib.SKILL_ROOT
+            lib.SKILL_ROOT = Path(tmp)
+            lib.SCHEMA_SQL = orig_root / "schemas" / "campaign.sql"
+            try:
+                brokers = [{"id": "x", "name": "X"}]
+                append_planned_batch(slug, brokers, "email", campaign_id="e1")
+                append_event(slug, "x", "SUBMITTED", lane="web", meta={"runner": "symaira"})
+                self.assertEqual(latest_events(slug, lane="email").get("x"), "PLANNED")
+                n = append_planned_batch(slug, brokers, "email", campaign_id="e2")
+                self.assertEqual(n, 0)
             finally:
                 lib.SKILL_ROOT = orig_root
 

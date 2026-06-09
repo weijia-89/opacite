@@ -96,7 +96,7 @@ bash ~/Projects/opacite.skill/scripts/optout_runner.sh --lane email --confirm
 |-----------|----------|
 | Multi-lane research fanout | `superset` + daily manifest `localonly/daily/<date>.md` |
 | Threat model / mandate / GDPR framing | `form-check` + `references/legal-constraints.md` |
-| Deep external product research | `piranesi` → `references/piranesi-external-research-packet.md` |
+| Deep external product research | `piranesi` → full-context packet in `references/piranesi-<slug>-chatprd-packets.md` (see piranesi v0.2 iron law) |
 | Evidence-grade synthesis | `palamedes` → `localonly/archive/research/palamedes-synthesis-reviewed.md` |
 | GitHub/Codeberg FOSS inventory (18 repos) | `references/comparable-foss-repos.md` (source: archived lane research) |
 | OSINT exposure discovery (non-removal) | `engram` (read-only; do not merge removal PII into dossiers) |
@@ -110,12 +110,23 @@ bash ~/Projects/opacite.skill/scripts/optout_runner.sh --lane email --confirm
 | `references/broker-taxonomy.md` | Process types, broker classes |
 | `references/legal-constraints.md` | DROP, CCPA, GDPR — constraints not counsel |
 | `references/REFERENCES.md` | Palamedes source table |
-| `references/piranesi-external-research-packet.md` | ChatPRD/Opus export |
+| `references/piranesi-external-research-packet.md` | ChatPRD/Opus export (legacy — must meet piranesi v0.2 full-context gate) |
+| `references/piranesi-*-chatprd-packets.md` | Full-context ChatPRD packets (canonical export path) |
 | `localonly/archive/research/` | Archived Palamedes + lane synthesis (internal only) |
 | `localonly/daily/` | Superset dispatch manifests |
 | `scripts/` | registry_sync, registry_health, vault_init, mandate_generate, exposure_scan, optout_runner, manual_tasks_export, eraser_adapter, keychain_smtp, bootstrap_case, opacite_lib, opacite_registry |
 | `schemas/campaign.sql` | SQLite campaign event schema |
 | `schemas/broker.schema.json` | Unified broker entry schema |
+
+## Piranesi export (iron law)
+
+When routing to **piranesi** for ChatPRD/Opus:
+
+1. **Full context only** — never outline packets in chat; never paraphrase-only `Evidence I have`.
+2. **Read then embed** — verbatim iron laws, code, roadmap rows, audit findings, or Human prep attach list.
+3. **Canonical path** — write complete packets to `references/piranesi-<slug>-chatprd-packets.md`; link from chat.
+4. **Pre-send** — `piranesi.skill/references/checklist.md` Full Context Gate + Secure code fence.
+5. **Repo exports** — four-backtick ` `````text ` fence; no nested triple-backticks; verify markdown preview.
 
 ## Kill criteria (do not scope-creep)
 

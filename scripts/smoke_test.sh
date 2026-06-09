@@ -5,6 +5,17 @@ set -euo pipefail
 SKILL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SKILL_ROOT"
 
+if [[ -x "$SKILL_ROOT/.venv/bin/python" ]]; then
+  PYTHON="$SKILL_ROOT/.venv/bin/python"
+else
+  PYTHON="${PYTHON:-python3}"
+fi
+
+if ! "$PYTHON" -c "import yaml" 2>/dev/null; then
+  echo "error: PyYAML required — run: python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt" >&2
+  exit 1
+fi
+
 echo "== syntax =="
 for sh in scripts/*.sh; do
   bash -n "$sh"
@@ -12,22 +23,22 @@ for sh in scripts/*.sh; do
 done
 
 echo "== python compile =="
-python3 -m py_compile scripts/opacite_lib.py scripts/opacite_registry.py \
+"$PYTHON" -m py_compile scripts/opacite_lib.py scripts/opacite_registry.py \
   scripts/mandate_generate.py scripts/eraser_adapter.py \
   scripts/manual_tasks_export.py scripts/symaira_adapter.py
 
 echo "== unit tests =="
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+"$PYTHON" -m unittest discover -s tests -p 'test_*.py' -v
 
 echo "== registry merge (fixtures) =="
 FIX="$SKILL_ROOT/tests/fixtures"
 OUT="$(mktemp -t opacite-brokers.XXXXXX.json)"
-python3 scripts/opacite_registry.py \
+"$PYTHON" scripts/opacite_registry.py \
   --optery "$FIX/optery-mini.json" \
   --eraser "$FIX/eraser-mini.yaml" \
   --no-symaira \
   --out "$OUT"
-COUNT="$(python3 -c "import json; print(json.load(open('$OUT'))['count'])")"
+COUNT="$("$PYTHON" -c "import json; print(json.load(open('$OUT'))['count'])")"
 [[ "$COUNT" -ge 2 ]] || { echo "fail: expected >=2 brokers"; exit 1; }
 rm -f "$OUT"
 
@@ -38,7 +49,7 @@ export OPACITE_TEST_CASE_ROOT="$CASE_ROOT"
 REG="$SKILL_ROOT/localonly/registry/unified-brokers.json"
 if [[ ! -f "$REG" ]]; then
   REG="$(mktemp -t opacite-reg.XXXXXX.json)"
-  python3 scripts/opacite_registry.py \
+  "$PYTHON" scripts/opacite_registry.py \
     --optery "$FIX/optery-mini.json" \
     --eraser "$FIX/eraser-mini.yaml" \
     --no-symaira \
@@ -46,7 +57,7 @@ if [[ ! -f "$REG" ]]; then
 fi
 mkdir -p "$SKILL_ROOT/localonly/cases/smoke-$$"
 bash scripts/bootstrap_case.sh --slug "smoke-$$" --mkdir 2>/dev/null || mkdir -p "$SKILL_ROOT/localonly/cases/smoke-$$/exports"
-python3 - "$REG" "smoke-$$" "$SKILL_ROOT" <<'PY'
+"$PYTHON" - "$REG" "smoke-$$" "$SKILL_ROOT" <<'PY'
 import json, os, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(sys.argv[3]) / "scripts"))
@@ -67,7 +78,7 @@ rm -rf "$SKILL_ROOT/localonly/cases/smoke-$$"
 echo "== mandate validation gate =="
 EMPTY_VAULT="$(mktemp -d -t opacite-vault.XXXXXX)"
 cp "$SKILL_ROOT/schemas/profile.template.yaml" "$EMPTY_VAULT/profile.yaml"
-MANDATE_ERR="$(python3 scripts/mandate_generate.py --case smoke-mandate --vault "$EMPTY_VAULT" 2>&1)" || true
+MANDATE_ERR="$("$PYTHON" scripts/mandate_generate.py --case smoke-mandate --vault "$EMPTY_VAULT" 2>&1)" || true
 rm -rf "$EMPTY_VAULT"
 if [[ "$MANDATE_ERR" == *legal_name* ]]; then
   echo "  ok empty profile rejected"

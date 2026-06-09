@@ -200,13 +200,11 @@ if confirm:
         ids = ",".join(b["id"] for b in selected)
         adapter = os.path.join(skill_root, "scripts", "symaira_adapter.py")
         cmd = [sys.executable, adapter, "--case", case, "--broker-ids", ids,
-               "--campaign-id", campaign_id, "--lane", "web"]
+               "--campaign-id", campaign_id, "--lane", "web", "--per-broker"]
         if not confirm or os.environ.get("OPACITE_SYMAIRA_EXECUTE") != "1":
             cmd.append("--dry-run")
         else:
             cmd.append("--execute")
-        if len(selected) <= 3:
-            cmd.append("--per-broker")
         print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)

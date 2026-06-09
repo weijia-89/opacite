@@ -8,14 +8,12 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 from opacite_lib import (  # noqa: E402
-    append_event,
     append_failed_batch,
     append_submitted_batch,
     case_dir,
@@ -23,6 +21,9 @@ from opacite_lib import (  # noqa: E402
 )
 
 CLI_CANDIDATES = ("symeraseme", "symaira-eraseme")
+
+# SY-01: symaira `plan create --max N` selects by campaign/jurisdiction, not opacite
+# broker ids. Never call plan execute from opacite until upstream adds --broker-ids.
 
 
 def find_symaira_cli() -> str | None:
@@ -33,54 +34,7 @@ def find_symaira_cli() -> str | None:
     return None
 
 
-def run_symaira(
-    cli: str,
-    broker_ids: list[str],
-    *,
-    dry_run: bool,
-    campaign: str,
-    batch_size: int,
-    delay: int,
-) -> subprocess.CompletedProcess[str]:
-    """Run symeraseme plan create + execute for explicit broker ids (best-effort)."""
-    # symaira selects by campaign/jurisdiction; we filter via --broker-id when available
-    cmds: list[list[str]] = []
-    plan = f"opacite-{campaign}"
-    cmds.append([cli, "plan", "create", "--campaign", plan, "--max", str(len(broker_ids))])
-    for bid in broker_ids:
-        cmds.append([cli, "brokers", "show", bid])
-    exec_cmd = [
-        cli, "plan", "execute",
-        "--campaign", plan,
-        "--batch-size", str(batch_size),
-        "--delay", str(delay),
-    ]
-    if dry_run:
-        exec_cmd.append("--dry-run")
-    else:
-        exec_cmd.append("--yes")
-    cmds.append(exec_cmd)
-
-    combined_out: list[str] = []
-    combined_err: list[str] = []
-    rc = 0
-    for cmd in cmds:
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        combined_out.append(f"$ {' '.join(cmd)}\n{proc.stdout}")
-        if proc.stderr:
-            combined_err.append(proc.stderr)
-        if proc.returncode != 0:
-            rc = proc.returncode
-            break
-    return subprocess.CompletedProcess(
-        args=exec_cmd,
-        returncode=rc,
-        stdout="\n".join(combined_out),
-        stderr="\n".join(combined_err),
-    )
-
-
-def run_web_form_fallback(
+def run_web_form(
     cli: str,
     broker_id: str,
     *,
@@ -92,6 +46,28 @@ def run_web_form_fallback(
     return subprocess.run(cmd, capture_output=True, text=True)
 
 
+def run_per_broker_batch(
+    cli: str,
+    broker_ids: list[str],
+    *,
+    dry_run: bool,
+) -> tuple[list[str], list[str], list[str]]:
+    """Run symeraseme run-web-form once per broker id (SY-01 safe path)."""
+    log_parts: list[str] = []
+    submitted: list[str] = []
+    failed: list[str] = []
+    for bid in broker_ids:
+        proc = run_web_form(cli, bid, dry_run=dry_run)
+        log_parts.append(f"$ {' '.join(proc.args)}\n{proc.stdout}")
+        if proc.stderr:
+            log_parts.append(proc.stderr)
+        if proc.returncode == 0:
+            submitted.append(bid)
+        else:
+            failed.append(bid)
+    return submitted, failed, log_parts
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="opacite → symaira web lane adapter")
     p.add_argument("--case", required=True)
@@ -99,13 +75,34 @@ def main() -> None:
     p.add_argument("--campaign-id", default=None)
     p.add_argument("--lane", default="web")
     p.add_argument("--execute", action="store_true", help="run symaira for real (default: dry-run)")
-    p.add_argument("--per-broker", action="store_true", help="use run-web-form per id instead of plan execute")
+    p.add_argument(
+        "--per-broker",
+        action="store_true",
+        help="force run-web-form per id (default since SY-01: always on)",
+    )
+    p.add_argument(
+        "--use-plan-execute",
+        action="store_true",
+        help="UNSAFE: plan create --max N does not honor --broker-ids (SY-01); do not use",
+    )
     p.add_argument("--json", action="store_true", dest="as_json")
     args = p.parse_args()
+
+    if args.use_plan_execute:
+        raise SystemExit(
+            "error: --use-plan-execute disabled (SY-01): symaira plan create selects by "
+            "campaign/jurisdiction, not opacite broker ids — use run-web-form per broker"
+        )
 
     dry_run = not args.execute
     if os.environ.get("OPACITE_SYMAIRA_EXECUTE") == "1":
         dry_run = False
+
+    if not dry_run:
+        from opacite_lib import require_mandate
+
+        if os.environ.get("OPACITE_SKIP_MANDATE") != "1":
+            require_mandate(args.case)
 
     cli = find_symaira_cli()
     if not cli:
@@ -123,37 +120,13 @@ def main() -> None:
     evidence_dir.mkdir(parents=True, exist_ok=True)
     campaign = args.campaign_id or "batch"
 
-    submitted: list[str] = []
-    failed: list[str] = []
+    submitted, failed, log_parts = run_per_broker_batch(cli, broker_ids, dry_run=dry_run)
+    log_path = evidence_dir / f"symaira-{'dryrun' if dry_run else 'run'}-{campaign}.log"
+    log_path.write_text("\n---\n".join(log_parts), encoding="utf-8")
 
-    if args.per_broker or len(broker_ids) <= 3:
-        log_parts: list[str] = []
-        for bid in broker_ids:
-            proc = run_web_form_fallback(cli, bid, dry_run=dry_run)
-            log_parts.append(proc.stdout + proc.stderr)
-            if proc.returncode == 0:
-                submitted.append(bid)
-            else:
-                failed.append(bid)
-        log_path = evidence_dir / f"symaira-{'dryrun' if dry_run else 'run'}-{campaign}.log"
-        log_path.write_text("\n---\n".join(log_parts), encoding="utf-8")
-    else:
-        with tempfile.TemporaryDirectory(prefix="opacite-symaira-") as tmp:
-            proc = run_symaira(
-                cli, broker_ids, dry_run=dry_run, campaign=campaign, batch_size=5, delay=30
-            )
-            log_path = evidence_dir / f"symaira-{'dryrun' if dry_run else 'run'}-{campaign}.log"
-            log_path.write_text(
-                proc.stdout + ("\n--- stderr ---\n" + proc.stderr if proc.stderr else ""),
-                encoding="utf-8",
-            )
-            if proc.returncode != 0:
-                failed = list(broker_ids)
-            else:
-                submitted = list(broker_ids)
-
-    event = "APPROVED" if dry_run else "SUBMITTED"
     if dry_run:
+        from opacite_lib import append_event
+
         for bid in submitted:
             append_event(
                 args.case,
@@ -193,6 +166,7 @@ def main() -> None:
         "failed": failed,
         "evidence_log": str(log_path),
         "cloud_llm_triage": False,
+        "path": "run-web-form-per-broker",
     }
     if args.as_json:
         print(json.dumps(result, indent=2))
