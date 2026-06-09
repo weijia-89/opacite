@@ -23,7 +23,8 @@ Lanes:
   web    → symaira per-broker run-web-form (dry-run unless OPACITE_SYMAIRA_EXECUTE=1)
   vanish → vanish scan/verify adapter (dry-run unless OPACITE_VANISH_EXECUTE=1; opt-out blocked)
   drop   → California DROP portal (operator-guided)
-  scan   → exposure_scan.sh plan (confirm dispatch: Phase 5)
+  scan   → exposure_scan.sh (--confirm dispatches scan; dry-run default;
+          live with OPACITE_EXPOSURE_EXECUTE=1)
 
 --confirm required for any outbound action. Without --confirm, plan only.
 --status prints SQLite event summary for --case.
@@ -253,6 +254,18 @@ if confirm:
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)
         run_manual_export_hint(case)
+        print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
+        sys.exit(0)
+    if lane == "scan":
+        scan_sh = os.path.join(skill_root, "scripts", "exposure_scan.sh")
+        cmd = [scan_sh, "--case", case]
+        if confirm and os.environ.get("OPACITE_EXPOSURE_EXECUTE") == "1":
+            cmd.append("--no-dry-run")
+        else:
+            cmd.append("--dry-run")
+        print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
+        subprocess.run(cmd, check=True)
+        campaign["execute_status"] = status_summary(case)
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
     print("error: specify --lane email|web|vanish|drop|scan", file=sys.stderr)

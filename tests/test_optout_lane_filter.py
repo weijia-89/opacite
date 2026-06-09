@@ -45,6 +45,41 @@ class TestOptoutRunnerHelp(unittest.TestCase):
         self.assertEqual(proc.returncode, 0)
         self.assertIn("vanish", proc.stdout)
 
+    def test_help_documents_scan_confirm(self) -> None:
+        proc = subprocess.run(
+            ["bash", str(ROOT / "scripts/optout_runner.sh"), "--help"],
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT),
+        )
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("scan", proc.stdout)
+        self.assertIn("exposure_scan.sh", proc.stdout)
+        self.assertIn("OPACITE_EXPOSURE_EXECUTE", proc.stdout)
+
+
+class TestScanLaneConfirm(unittest.TestCase):
+    def test_scan_confirm_dispatches_exposure_scan(self) -> None:
+        proc = subprocess.run(
+            [
+                "bash",
+                str(ROOT / "scripts/optout_runner.sh"),
+                "--case",
+                "me",
+                "--lane",
+                "scan",
+                "--confirm",
+                "--max",
+                "10",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT),
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("exposure_scan.sh", proc.stderr)
+        self.assertIn("executing:", proc.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
