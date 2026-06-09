@@ -22,6 +22,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Changed
 
+- `AGENTS.md` + CI **Trainer PR review comment gate** (toebeans/buds parity); `scripts/trainer_pr_review_post.sh` workflow documented
 - `references/ROADMAP.md` — adversarial gap inventory; Phase 5 §5.1–5.5 truth after Wave 4
 - Live verify on lane=`scan` records `VERIFIED_REMOVED` / `RE_LISTED` (exposure_status) separately from email/web `SUBMITTED`
 - Verify dry-run works without vanish CLI installed (CI-safe, matches scan pattern)
