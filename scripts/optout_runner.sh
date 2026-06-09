@@ -84,6 +84,7 @@ skip_health = skip_health == "1"
 sys.path.insert(0, str(Path(skill_root) / "scripts"))
 from opacite_lib import (
     append_planned_batch,
+    broker_matches_lane,
     health_status_by_broker,
     init_state_db,
     load_health_report,
@@ -102,22 +103,6 @@ health_map = health_status_by_broker(load_health_report(health_path))
 excluded_dead = []
 excluded_blocked = []
 
-def filter_lane(b):
-    if lane == "email":
-        return b.get("process") == "email-opt-out" or b.get("runner") == "eraser"
-    if lane == "web":
-        return b.get("process") in ("direct-form", "search-for-removal", "opt-out-search", "captcha-gated")
-    if lane == "drop":
-        return b.get("drop_eligible") or b.get("process") == "drop-centralized"
-    if lane == "scan":
-        return b.get("broker_class") == "people-search"
-    if lane == "vanish":
-        return (
-            b.get("runner") == "vanish"
-            or b.get("process") in ("search-for-removal", "opt-out-search")
-        )
-    return True
-
 def health_ok(b):
     if skip_health or not health_map:
         return True
@@ -130,7 +115,7 @@ def health_ok(b):
         return False
     return True
 
-candidates = [b for b in brokers if filter_lane(b) and health_ok(b)]
+candidates = [b for b in brokers if broker_matches_lane(b, lane) and health_ok(b)]
 selected = candidates[:max_n] if lane else candidates[:max_n]
 campaign_id = str(uuid.uuid4())[:8]
 
@@ -181,6 +166,22 @@ if excluded_dead:
 if excluded_blocked:
     print(f"filtered {len(excluded_blocked)} blocked URL broker(s) for email lane", file=sys.stderr)
 
+
+def run_manual_export_hint(case_slug: str) -> None:
+    export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
+    if not os.path.isfile(export_py):
+        return
+    subprocess.run(
+        [sys.executable, export_py, "--case", case_slug, "--json-only"],
+        check=False,
+        capture_output=True,
+    )
+    print(
+        f"\nhint: manual queue → localonly/cases/{case_slug}/exports/manual_tasks.md",
+        file=sys.stderr,
+    )
+
+
 if confirm:
     if not case:
         print("error: --case required with --confirm", file=sys.stderr)
@@ -214,17 +215,7 @@ if confirm:
         print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)
-        export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
-        if os.path.isfile(export_py):
-            subprocess.run(
-                [sys.executable, export_py, "--case", case, "--json-only"],
-                check=False,
-                capture_output=True,
-            )
-            print(
-                f"\nhint: manual queue → localonly/cases/{case}/exports/manual_tasks.md",
-                file=sys.stderr,
-            )
+        run_manual_export_hint(case)
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
     if lane == "vanish":
@@ -243,17 +234,7 @@ if confirm:
         print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)
-        export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
-        if os.path.isfile(export_py):
-            subprocess.run(
-                [sys.executable, export_py, "--case", case, "--json-only"],
-                check=False,
-                capture_output=True,
-            )
-            print(
-                f"\nhint: manual queue → localonly/cases/{case}/exports/manual_tasks.md",
-                file=sys.stderr,
-            )
+        run_manual_export_hint(case)
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
     if lane == "email":
@@ -271,17 +252,7 @@ if confirm:
         print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)
-        export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
-        if os.path.isfile(export_py):
-            subprocess.run(
-                [sys.executable, export_py, "--case", case, "--json-only"],
-                check=False,
-                capture_output=True,
-            )
-            print(
-                f"\nhint: manual queue → localonly/cases/{case}/exports/manual_tasks.md",
-                file=sys.stderr,
-            )
+        run_manual_export_hint(case)
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
     print("error: specify --lane email|web|vanish|drop|scan", file=sys.stderr)

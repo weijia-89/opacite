@@ -229,7 +229,7 @@ def main() -> None:
         )
         raise SystemExit(
             f"error: {reason}\n"
-            "Use --action scan or verify. Opt-out wiring lands in Wave 2 after consent gate."
+            "Use --action scan or verify. Browser opt-out awaits opacite consent gate."
         )
 
     dry_run = not args.execute
