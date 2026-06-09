@@ -41,13 +41,32 @@ def select_scan_targets(brokers: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [b for b in brokers if broker_matches_lane(b, LANE)]
 
 
+def load_prior_report(report_path: Path) -> dict[str, Any] | None:
+    if not report_path.is_file():
+        return None
+    with report_path.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
 def filter_delta_targets(
     slug: str,
     targets: list[dict[str, Any]],
+    *,
+    prior_report: dict[str, Any] | None,
 ) -> list[dict[str, Any]]:
-    """ROADMAP 5.2: only brokers with RE_LISTED on scan lane."""
+    """ROADMAP 5.2: RE_LISTED plus brokers not in prior exposure_report.json."""
     current = latest_events(slug, lane=LANE)
-    return [b for b in targets if current.get(b["id"]) == "RE_LISTED"]
+    relisted_ids = {
+        b["id"] for b in targets if current.get(b["id"]) == "RE_LISTED"
+    }
+    if prior_report is None:
+        return [b for b in targets if b["id"] in relisted_ids]
+    prior_ids = set(prior_report.get("target_broker_ids", []))
+    return [
+        b
+        for b in targets
+        if b["id"] in relisted_ids or b["id"] not in prior_ids
+    ]
 
 
 def target_row(b: dict[str, Any], *, action: str) -> dict[str, Any]:
@@ -255,8 +274,14 @@ def run_scan(
     data = load_registry(registry_path)
     brokers = data.get("brokers", [])
     targets = select_scan_targets(brokers)
+
+    case_dir = SKILL_ROOT / "localonly" / "cases" / case
+    exports = case_dir / "exports"
+    plan_path = exports / "exposure_plan.json"
+    report_path = exports / "exposure_report.json"
+    prior_report = load_prior_report(report_path) if delta_only else None
     if delta_only:
-        targets = filter_delta_targets(case, targets)
+        targets = filter_delta_targets(case, targets, prior_report=prior_report)
 
     campaign_id = str(uuid.uuid4())[:8]
     execute = (not dry_run) and os.environ.get("OPACITE_EXPOSURE_EXECUTE") == "1"
@@ -265,11 +290,6 @@ def run_scan(
             "error: live scan requires OPACITE_EXPOSURE_EXECUTE=1 "
             "(human gate; use --dry-run otherwise)"
         )
-
-    case_dir = SKILL_ROOT / "localonly" / "cases" / case
-    exports = case_dir / "exports"
-    plan_path = exports / "exposure_plan.json"
-    report_path = exports / "exposure_report.json"
 
     plan_action = "plan_scan" if dry_run else "execute_scan"
     plan = {
@@ -357,12 +377,17 @@ def run_scan(
         "generated_at": utc_now(),
         "case": case,
         "lane": LANE,
+        "mode": "scan",
         "dry_run": dry_run,
         "execute": execute,
         "delta_only": delta_only,
         "campaign_id": campaign_id,
         "registry_path": str(registry_path),
         "scan_target_count": len(targets),
+        "target_broker_ids": [b["id"] for b in targets],
+        "prior_target_count": len(prior_report.get("target_broker_ids", []))
+        if prior_report
+        else 0,
         "events_planned_written": events_written,
         "vanish_delegated_count": len(vanish_ids) if execute else 0,
         "manual_required_count": len(manual_required),
