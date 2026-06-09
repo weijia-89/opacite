@@ -12,8 +12,8 @@ Brutal truth table after Wave 3 landed and Wave 4 preflight (`localonly/trainer-
 | Gap | Severity | Honest status | Wave / owner |
 |-----|----------|---------------|--------------|
 | Rescan scheduler (60d / 90d) | P1 | **Shipped** — `rescan_scheduler.sh` dry-run planner + launchd/cron docs (PR pending) | Wave 4 · `rescan-scheduler` ✅ |
-| Verify wired to exposure/rescan | P1 | **Missing** — `vanish_adapter --action verify` exists; not in `exposure_scan` / scan confirm path | Wave 4 · `exposure-verify-wire` |
-| Verify dry-run without vanish CLI | P1 | **Broken vs scan pattern** — verify exits `INSTALL_HINT`; scan dry-run is CI-safe | Wave 4 · `exposure-verify-wire` |
+| Verify wired to exposure/rescan | P1 | **Shipped** — `exposure_scan.sh --verify`; `OPACITE_EXPOSURE_VERIFY=1` on scan confirm (PR pending) | Wave 4 · `exposure-verify-wire` ✅ |
+| Verify dry-run without vanish CLI | P1 | **Fixed** — verify dry-run CI-safe like scan | Wave 4 · `exposure-verify-wire` ✅ |
 | `--delta-only` report diff | P2 | **Seed only** — filters `RE_LISTED`; no diff vs prior `exposure_report.json` | Wave 4 · `exposure-delta-diff` |
 | `RE_LISTED` / `VERIFIED_REMOVED` writers | P2 | **Schema only** — no production `append_event` for exposure terminal states (**doc lie** on 5.2 ✅) | Wave 4 · verify + delta agents |
 | `exposure_status` ≠ `request_status` | P2 | **Principle #5 doc-only** — verify writes `APPROVED`/`SUBMITTED`, not exposure KPIs | Wave 4 · `exposure-verify-wire` |
@@ -181,7 +181,7 @@ gantt
 | 5.1 | `exposure_scan.sh` live mode + `optout_runner --lane scan --confirm` | `exposure_plan.json` + `exposure_report.json`; lane=`scan` SQLite PLANNED/APPROVED; vanish delegation when `OPACITE_EXPOSURE_EXECUTE=1` | ✅ Wave 3 (`v0.5.3`); match detail from vanish JSON when installed |
 | 5.2 | Delta scan: re-queue only changed / relisted brokers | `--delta-only` skips unchanged vs last `exposure_report.json`; re-queue `RE_LISTED` + new/changed matches | 🟡 **partial** — RE_LISTED filter seed only; **no report diff**; **no production writer** for `RE_LISTED`/`VERIFIED_REMOVED` |
 | 5.3 | Scheduler: **60d** people-search / **90d** private DB cadence (Incogni Q2) | `rescan_scheduler.sh --dry-run` prints next due; launchd/cron templates in `references/rescan-scheduler.md` | ✅ Wave 4 agent 1 (`rescan_scheduler.py`); operator still runs suggested commands manually |
-| 5.4 | vanish-style verify pass for sample brokers | `--verify` or scan-lane verify path; `exposure_status` (`VERIFIED_REMOVED`/`RE_LISTED`) independent of `request_status` (`SUBMITTED` on email/web) | ⏳ **Wave 4 agent 2** — adapter exists; wiring + CI-safe dry-run pending |
+| 5.4 | vanish-style verify pass for sample brokers | `--verify` or scan-lane verify path; `exposure_status` (`VERIFIED_REMOVED`/`RE_LISTED`) independent of `request_status` (`SUBMITTED` on email/web) | ✅ Wave 4 agent 2 — dry-run + live path on lane=`scan`; vanish lane verify unchanged |
 | 5.5 | Quarterly operator review ritual (15 min) | Documented in `SKILL.md` + ROADMAP cross-link | ⏳ **Wave 4 agent 4** |
 
 **Verified (2026-06-12):** Scan dry-run needs no vanish CLI (CI-safe). Verify dry-run **does not** — asymmetry is a known P1 gap. Live execute without vanish records `MANUAL_REQUIRED` on lane=`scan`, not a hard crash.

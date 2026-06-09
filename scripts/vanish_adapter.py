@@ -237,9 +237,10 @@ def main() -> None:
         dry_run = False
 
     prefix = find_vanish()
+    vanish_cli_missing = prefix is None
     if not prefix:
-        # Scan dry-run logs intent only — no subprocess; vanish need not be installed (CI).
-        if args.action == "scan" and dry_run:
+        # Scan/verify dry-run logs intent only — no subprocess; vanish need not be installed (CI).
+        if args.action in ALLOWED_ACTIONS and dry_run:
             prefix = ["vanish"]
         else:
             raise SystemExit(INSTALL_HINT)
@@ -292,18 +293,26 @@ def main() -> None:
             submitted = list(broker_ids)
             failed = []
 
-    else:  # verify — dry-run still invokes vanish with --no-fetch (local cache only).
+    else:  # verify
         cmd = build_verify_cmd(prefix, broker_slugs, dry_run=dry_run)
-        proc = run_vanish_subprocess(cmd)
-        log_parts.append(f"$ {' '.join(cmd)}\n{proc.stdout}")
-        if proc.stderr:
-            log_parts.append(proc.stderr)
-        submitted = []
-        failed = []
-        if proc.returncode == 0:
+        if dry_run and vanish_cli_missing:
+            log_parts.append(
+                f"# dry-run: would run\n$ {' '.join(cmd)}\n"
+                "# verify dry-run uses --no-fetch when vanish installed (Evidence A)\n"
+            )
             submitted = list(broker_ids)
+            failed = []
         else:
-            failed = list(broker_ids)
+            proc = run_vanish_subprocess(cmd)
+            log_parts.append(f"$ {' '.join(cmd)}\n{proc.stdout}")
+            if proc.stderr:
+                log_parts.append(proc.stderr)
+            submitted = []
+            failed = []
+            if proc.returncode == 0:
+                submitted = list(broker_ids)
+            else:
+                failed = list(broker_ids)
 
     mode = "dryrun" if dry_run else "run"
     log_path = evidence_dir / f"vanish-{args.action}-{mode}-{campaign}.log"
@@ -317,15 +326,20 @@ def main() -> None:
         "evidence_grade": "C" if args.action == "scan" else "A",
     }
 
+    exposure_lane = args.lane == "scan" and args.action == "verify"
+
     if dry_run:
         for bid in submitted:
+            dry_meta: dict[str, Any] = {**meta_base, "dry_run": True}
+            if exposure_lane:
+                dry_meta["exposure_status"] = "verify_dry_run"
             append_event(
                 args.case,
                 bid,
                 "APPROVED",
                 lane=args.lane,
                 evidence_path=str(log_path),
-                meta={**meta_base, "dry_run": True},
+                meta=dry_meta,
             )
         for bid in failed:
             append_failed_batch(
@@ -336,23 +350,43 @@ def main() -> None:
                 campaign_id=args.campaign_id,
             )
     else:
-        if submitted:
-            append_submitted_batch(
-                args.case,
-                submitted,
-                args.lane,
-                campaign_id=args.campaign_id,
-                runner="vanish",
-                evidence_path=str(log_path),
-            )
-        if failed:
-            append_failed_batch(
-                args.case,
-                failed,
-                args.lane,
-                reason=f"vanish {args.action} failed",
-                campaign_id=args.campaign_id,
-            )
+        if exposure_lane:
+            for bid in submitted:
+                append_event(
+                    args.case,
+                    bid,
+                    "VERIFIED_REMOVED",
+                    lane=args.lane,
+                    evidence_path=str(log_path),
+                    meta={**meta_base, "exposure_status": "verified_removed"},
+                )
+            for bid in failed:
+                append_event(
+                    args.case,
+                    bid,
+                    "RE_LISTED",
+                    lane=args.lane,
+                    evidence_path=str(log_path),
+                    meta={**meta_base, "exposure_status": "re_listed"},
+                )
+        else:
+            if submitted:
+                append_submitted_batch(
+                    args.case,
+                    submitted,
+                    args.lane,
+                    campaign_id=args.campaign_id,
+                    runner="vanish",
+                    evidence_path=str(log_path),
+                )
+            if failed:
+                append_failed_batch(
+                    args.case,
+                    failed,
+                    args.lane,
+                    reason=f"vanish {args.action} failed",
+                    campaign_id=args.campaign_id,
+                )
 
     result = {
         "case": args.case,

@@ -24,7 +24,7 @@ Lanes:
   vanish → vanish scan/verify adapter (dry-run unless OPACITE_VANISH_EXECUTE=1; opt-out blocked)
   drop   → California DROP portal (operator-guided)
   scan   → exposure_scan.sh (--confirm dispatches scan; dry-run default;
-          live with OPACITE_EXPOSURE_EXECUTE=1)
+          live with OPACITE_EXPOSURE_EXECUTE=1; OPACITE_EXPOSURE_VERIFY=1 → --verify)
 
 --confirm required for any outbound action. Without --confirm, plan only.
 --status prints SQLite event summary for --case.
@@ -259,6 +259,9 @@ if confirm:
     if lane == "scan":
         scan_sh = os.path.join(skill_root, "scripts", "exposure_scan.sh")
         cmd = [scan_sh, "--case", case, "--registry", registry]
+        if os.environ.get("OPACITE_EXPOSURE_VERIFY") == "1":
+            cmd.append("--verify")
+            cmd.extend(["--max", str(max_n)])
         if confirm and os.environ.get("OPACITE_EXPOSURE_EXECUTE") == "1":
             cmd.append("--no-dry-run")
         else:
