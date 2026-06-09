@@ -50,17 +50,48 @@ class _CaseIsolation:
 
 
 class TestVanishDiscovery(unittest.TestCase):
-    def test_missing_vanish_exits_with_hint(self) -> None:
+    def test_missing_vanish_scan_dry_run_ok_without_cli(self) -> None:
+        profile = {
+            "legal_name": {"first": "Test", "last": "User"},
+            "emails": ["test@example.com"],
+        }
         with mock.patch.object(vanish_adapter, "find_vanish", return_value=None):
-            with mock.patch.object(sys, "argv", [
-                "vanish_adapter.py",
-                "--case", "c1",
-                "--broker-ids", "foo",
-                "--json",
-            ]):
-                with self.assertRaises(SystemExit) as ctx:
-                    vanish_adapter.main()
-                self.assertIn("vanish not found", str(ctx.exception))
+            with mock.patch.object(vanish_adapter, "load_profile", return_value=profile):
+                with tempfile.TemporaryDirectory() as tmp:
+                    tmp_root = Path(tmp)
+                    with _CaseIsolation(tmp_root, "c1"):
+                        with mock.patch.object(
+                            vanish_adapter,
+                            "REGISTRY_DEFAULT",
+                            ROOT / "tests" / "fixtures" / "optery-mini.json",
+                        ):
+                            with mock.patch.object(sys, "argv", [
+                                "vanish_adapter.py",
+                                "--case", "c1",
+                                "--broker-ids", "broker-a",
+                                "--json",
+                            ]):
+                                vanish_adapter.main()
+                        events = latest_events("c1", lane="vanish")
+                        self.assertEqual(events.get("broker-a"), "APPROVED")
+
+    def test_missing_vanish_verify_exits_with_hint(self) -> None:
+        profile = {
+            "legal_name": {"first": "Test", "last": "User"},
+            "emails": ["test@example.com"],
+        }
+        with mock.patch.object(vanish_adapter, "find_vanish", return_value=None):
+            with mock.patch.object(vanish_adapter, "load_profile", return_value=profile):
+                with mock.patch.object(sys, "argv", [
+                    "vanish_adapter.py",
+                    "--case", "c1",
+                    "--broker-ids", "foo",
+                    "--action", "verify",
+                    "--json",
+                ]):
+                    with self.assertRaises(SystemExit) as ctx:
+                        vanish_adapter.main()
+                    self.assertIn("vanish not found", str(ctx.exception))
 
 
 class TestVanishBlockedActions(unittest.TestCase):

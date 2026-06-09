@@ -14,15 +14,16 @@ SKIP_HEALTH_FILTER=0
 
 usage() {
   cat <<'EOF'
-Usage: optout_runner.sh [--case <slug>] [--lane email|web|drop|scan] [--plan] [--confirm] [--max N] [--status]
+Usage: optout_runner.sh [--case <slug>] [--lane email|web|vanish|drop|scan] [--plan] [--confirm] [--max N] [--status]
 
 Default: --plan (no network side effects)
 
 Lanes:
   email  → eraser adapter (SMTP; requires local eraser install + config)
-  web    → symaira / auto-identity-remove adapter
+  web    → symaira per-broker run-web-form (dry-run unless OPACITE_SYMAIRA_EXECUTE=1)
+  vanish → vanish scan/verify adapter (dry-run unless OPACITE_VANISH_EXECUTE=1; opt-out blocked)
   drop   → California DROP portal (operator-guided)
-  scan   → exposure_scan.sh delegation
+  scan   → exposure_scan.sh plan (confirm dispatch: Phase 5)
 
 --confirm required for any outbound action. Without --confirm, plan only.
 --status prints SQLite event summary for --case.
@@ -110,6 +111,11 @@ def filter_lane(b):
         return b.get("drop_eligible") or b.get("process") == "drop-centralized"
     if lane == "scan":
         return b.get("broker_class") == "people-search"
+    if lane == "vanish":
+        return (
+            b.get("runner") == "vanish"
+            or b.get("process") in ("search-for-removal", "opt-out-search")
+        )
     return True
 
 def health_ok(b):
@@ -208,6 +214,46 @@ if confirm:
         print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
         subprocess.run(cmd, check=True)
         campaign["execute_status"] = status_summary(case)
+        export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
+        if os.path.isfile(export_py):
+            subprocess.run(
+                [sys.executable, export_py, "--case", case, "--json-only"],
+                check=False,
+                capture_output=True,
+            )
+            print(
+                f"\nhint: manual queue → localonly/cases/{case}/exports/manual_tasks.md",
+                file=sys.stderr,
+            )
+        print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
+        sys.exit(0)
+    if lane == "vanish":
+        if not selected:
+            print("error: no brokers selected for vanish lane", file=sys.stderr)
+            sys.exit(1)
+        ids = ",".join(b["id"] for b in selected)
+        adapter = os.path.join(skill_root, "scripts", "vanish_adapter.py")
+        cmd = [
+            sys.executable, adapter, "--case", case, "--broker-ids", ids,
+            "--campaign-id", campaign_id, "--lane", "vanish", "--action", "scan",
+            "--json",
+        ]
+        if confirm and os.environ.get("OPACITE_VANISH_EXECUTE") == "1":
+            cmd.append("--execute")
+        print(f"\nexecuting: {' '.join(cmd)}", file=sys.stderr)
+        subprocess.run(cmd, check=True)
+        campaign["execute_status"] = status_summary(case)
+        export_py = os.path.join(skill_root, "scripts", "manual_tasks_export.py")
+        if os.path.isfile(export_py):
+            subprocess.run(
+                [sys.executable, export_py, "--case", case, "--json-only"],
+                check=False,
+                capture_output=True,
+            )
+            print(
+                f"\nhint: manual queue → localonly/cases/{case}/exports/manual_tasks.md",
+                file=sys.stderr,
+            )
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
     if lane == "email":
@@ -238,7 +284,7 @@ if confirm:
             )
         print(json.dumps({"campaign_id": campaign_id, "status": campaign["execute_status"]}, indent=2))
         sys.exit(0)
-    print("error: specify --lane email|web|drop", file=sys.stderr)
+    print("error: specify --lane email|web|vanish|drop|scan", file=sys.stderr)
     sys.exit(1)
 
 if not confirm:

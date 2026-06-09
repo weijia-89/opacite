@@ -77,7 +77,15 @@ python3 scripts/vanish_adapter.py --case me --broker-ids spokeo --action opt-out
 # → exit 1, MANUAL_REQUIRED events, consent-gate message
 ```
 
-Browser-assisted `vanish opt-out` lands after Wave 2 (`optout-lane-wire`) + consent gate. Do not use `llm-memory-check` (sends PII to cloud LLM probes).
+Browser-assisted `vanish opt-out` remains blocked until the opacite consent gate ships. Do not use `llm-memory-check` (sends PII to cloud LLM probes).
+
+### Unified runner (v0.5.1+)
+
+```bash
+bash scripts/optout_runner.sh --case me --lane vanish --confirm --max 10
+```
+
+Scan dry-run does **not** require vanish installed. Live scan: `OPACITE_VANISH_EXECUTE=1` on the command above (adapter adds `--execute`).
 
 ## Tier B seed sites (documentation URLs only)
 

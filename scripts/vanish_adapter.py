@@ -232,13 +232,17 @@ def main() -> None:
             "Use --action scan or verify. Opt-out wiring lands in Wave 2 after consent gate."
         )
 
-    prefix = find_vanish()
-    if not prefix:
-        raise SystemExit(INSTALL_HINT)
-
     dry_run = not args.execute
     if os.environ.get("OPACITE_VANISH_EXECUTE") == "1":
         dry_run = False
+
+    prefix = find_vanish()
+    if not prefix:
+        # Scan dry-run logs intent only — no subprocess; vanish need not be installed (CI).
+        if args.action == "scan" and dry_run:
+            prefix = ["vanish"]
+        else:
+            raise SystemExit(INSTALL_HINT)
 
     registry = load_registry(args.registry)
     opacite_by_id = {b["id"]: b for b in registry.get("brokers", []) if b.get("id")}
