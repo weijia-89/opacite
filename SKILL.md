@@ -67,7 +67,7 @@ Tier key: **A** = unattended script · **B** = browser-assisted / one-click conf
 | `scan` | Find where you appear | `exposure_scan.sh` |
 | `campaign` | Execute opt-out wave | `optout_runner.sh --lane email\|web\|vanish\|scan\|drop` |
 | `triage` | Process broker replies | symaira triage adapter or local IMAP + LLM (offline model only) |
-| `rescan` | 60–90 day recurrence | `exposure_scan.sh` + delta opt-outs |
+| `rescan` | 60–90 day recurrence | `rescan_scheduler.sh` → `exposure_scan.sh --delta-only` / verify |
 | `audit` | Coverage / gap report | `references/comparable-foss-repos.md`; archived lanes under `localonly/archive/research/` |
 
 ## Quick start (operator)
@@ -90,6 +90,23 @@ bash scripts/optout_runner.sh --case me --plan --lane email --max 50
 bash scripts/optout_runner.sh --case me --lane email --confirm
 ```
 
+## Quarterly operator ritual (~15 min)
+
+Run every **~90 days** (align with private-db cadence) or when `rescan_scheduler.sh` reports **OVERDUE**. Full cadence docs: `references/rescan-scheduler.md` · ROADMAP §5.5.
+
+| Step | Command / action | Pass criterion |
+|------|------------------|----------------|
+| 1. Schedule | `bash scripts/rescan_scheduler.sh --case <slug> --dry-run` | Read `rescan_schedule.json`; note overdue buckets |
+| 2. Registry health | `bash scripts/registry_health.sh` (if last run >30d) | `registry_health.json` refreshed; dead URL % acceptable |
+| 3. Exposure scan | `bash scripts/exposure_scan.sh --case <slug> --dry-run` or `--delta-only` if rescans repeat | `exposure_report.json` updated |
+| 4. Verify sample | `bash scripts/exposure_scan.sh --case <slug> --verify --dry-run --max 5` | Lane=`scan` events; no vanish required for dry-run |
+| 5. Request status | `bash scripts/optout_runner.sh --case <slug> --status` | Review global counts; drill `state.sqlite` per lane if needed |
+| 6. Manual queue | `python3 scripts/manual_tasks_export.py --case <slug>` | `exports/manual_tasks.md` depth trending down |
+| 7. Rescan execute | Only if overdue **and** operator approves: `--lane scan --confirm` (+ `OPACITE_EXPOSURE_EXECUTE=1` for live) | Human `--confirm` gate; never auto-send |
+| 8. DROP / dedup | CA residents: check DROP window; `python3 scripts/drop_dedup.py --case <slug> --dry-run` before email batches | No duplicate DROP + email same week |
+
+Track **exposure_status** (`VERIFIED_REMOVED` / `RE_LISTED` on lane=`scan`) separately from **request_status** (`SUBMITTED` on email/web). Brokers may ack a request while listings persist — see `references/ROADMAP.md` principle #5.
+
 ## Specialist routing (trainer)
 
 | Situation | Route to |
@@ -106,6 +123,7 @@ bash scripts/optout_runner.sh --case me --lane email --confirm
 | Path | Purpose |
 |------|---------|
 | `references/ROADMAP.md` | Phased implementation plan (research → steady state) |
+| `references/rescan-scheduler.md` | 60d/90d cadence + launchd/cron templates |
 | `references/ARCHITECTURE.md` | System design, component graph |
 | `references/broker-taxonomy.md` | Process types, broker classes |
 | `references/legal-constraints.md` | DROP, CCPA, GDPR — constraints not counsel |
@@ -114,7 +132,7 @@ bash scripts/optout_runner.sh --case me --lane email --confirm
 | `references/piranesi-*-chatprd-packets.md` | Full-context ChatPRD packets (canonical export path) |
 | `localonly/archive/research/` | Archived Palamedes + lane synthesis (internal only) |
 | `localonly/daily/` | Superset dispatch manifests |
-| `scripts/` | registry_sync, registry_health, vault_init, mandate_generate, exposure_scan, exposure_scan.py, optout_runner, manual_tasks_export, eraser_adapter, symaira_adapter, vanish_adapter, drop_dedup, keychain_smtp, bootstrap_case, opacite_lib, opacite_registry |
+| `scripts/` | registry_sync, registry_health, vault_init, mandate_generate, exposure_scan, exposure_scan.py, rescan_scheduler, optout_runner, manual_tasks_export, eraser_adapter, symaira_adapter, vanish_adapter, drop_dedup, keychain_smtp, bootstrap_case, opacite_lib, opacite_registry |
 | `schemas/campaign.sql` | SQLite campaign event schema |
 | `schemas/broker.schema.json` | Unified broker entry schema |
 
