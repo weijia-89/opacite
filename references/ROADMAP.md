@@ -1,6 +1,6 @@
 # opacite roadmap
 
-**Status:** 2026-06-12 · **Shipped:** `v0.5.3` (`0f8cbe3`) · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
+**Status:** 2026-06-12 · **Shipped:** `v0.5.4` (Wave 4 complete) · **Evidence base (archived):** `localonly/archive/research/palamedes-synthesis-reviewed.md`  
 **Not legal advice.** **Not a removal guarantee.**
 
 ---
@@ -24,7 +24,7 @@ Brutal truth table after Wave 3 landed and Wave 4 preflight (`localonly/trainer-
 | Phase 6 automation ceiling | — | **Not started** — open bet still **speculative** | Phase 6 |
 | Incogni parity claim | — | **Partial** — scheduler + verify + delta on `main`; no unattended outbound loop, no HTML dashboard | Phase 6 |
 
-**What `main` ships after Wave 4 agents 1–3 (pre–v0.5.4 tag):** rescan planner (`rescan_scheduler.sh`); exposure scan + `--verify` + `--delta-only`; lane=`scan` events including `VERIFIED_REMOVED`/`RE_LISTED` on live verify. Operator still approves every outbound lane; scheduler prints suggested commands only.
+**What v0.5.4 ships:** rescan planner (`rescan_scheduler.sh`); exposure scan + `--verify` + `--delta-only`; quarterly ritual in `SKILL.md`; lane=`scan` events including `VERIFIED_REMOVED`/`RE_LISTED` on live verify. Operator still approves every outbound lane; scheduler prints suggested commands only.
 
 **Kill / downgrade triggers (unchanged):**
 
@@ -174,7 +174,7 @@ gantt
 
 ## Phase 5 — Discovery, verify & rescan (steady state) — **active (Wave 4)**
 
-**Goal:** Match Incogni loop: scan → request → verify → rescan. **Honest progress:** ~85% — Wave 4 agents 1–3 on `main`; ritual doc (5.5) + v0.5.4 tag remain.
+**Goal:** Match Incogni loop: scan → request → verify → rescan. **Honest progress:** ~90% — Wave 4 complete (`v0.5.4`); Phase 6 metrics/dashboard and unattended outbound remain out of scope.
 
 | # | Work item | Acceptance | Status |
 |---|-----------|------------|--------|
@@ -259,7 +259,7 @@ Do **not** use “brokers removed” as sole KPI — brokers count requests comp
 2. ~~`exposure-verify-wire`~~ ✅ #7
 3. ~~`exposure-delta-diff`~~ ✅ #9
 4. `roadmap-ritual-sync` → SKILL quarterly ritual + ROADMAP truth pass (this PR).
-5. `skill-version-bump` → `v0.5.4` + deai on user-facing prose (next PR only).
+5. ~~`skill-version-bump`~~ ✅ `v0.5.4` (this release).
 
 **Operator (parallel, not blocked on Wave 4):**
 

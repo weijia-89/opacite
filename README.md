@@ -10,17 +10,17 @@ FOSS runners sit behind an encrypted vault on your machine. You approve each out
 
 ---
 
-## Status (2026-06-11)
+## Status (2026-06-12)
 
 | Phase | Scope | State |
 |-------|--------|-------|
 | 0–2 | Registry, vault, email lane, mandate, manual export | **Done** |
 | 3 | Web + vanish lanes, 25 playbooks | **Done** — dry-run default; live via env execute flags |
 | 4 | California DROP | **Doc + recorder + dedup** — operator submits portal |
-| 5 | Exposure scan + scan lane | **Partial** — `--lane scan --confirm`; live vanish needs local install |
+| 5 | Rescan loop (scheduler, verify, delta scan) | **Done** — planner + dry-run paths; live outbound still needs `--confirm` + execute env |
 | 6 | Metrics, audit UI | Planned |
 
-Nothing sends without `--confirm`. Lane execute env vars: `OPACITE_ERASER_DRY_RUN=1` (email dry-run), `OPACITE_EXPOSURE_EXECUTE=1` (live exposure scan).
+Nothing sends without `--confirm`. Key env vars: `OPACITE_ERASER_DRY_RUN=1` (email dry-run), `OPACITE_EXPOSURE_EXECUTE=1` (live scan/verify), `OPACITE_EXPOSURE_VERIFY=1` (scan confirm → verify). Quarterly checklist: [`SKILL.md`](SKILL.md) §Quarterly operator ritual.
 
 ---
 
@@ -105,9 +105,14 @@ Live: `OPACITE_SYMAIRA_EXECUTE=1` (requires `symeraseme` in PATH).
 `bash scripts/optout_runner.sh --case me --lane vanish --confirm --max 3`  
 Setup: [`references/vanish-lane-setup.md`](references/vanish-lane-setup.md)
 
+**Rescan cadence (planner only; no network):**  
+`bash scripts/rescan_scheduler.sh --case me --dry-run` → `exports/rescan_schedule.json`
+
 **Exposure scan lane (people-search discovery; no opt-outs):**  
 `bash scripts/optout_runner.sh --case me --lane scan --confirm --max 10`  
 Or: `bash scripts/exposure_scan.sh --case me --dry-run`  
+Repeat rescans: `bash scripts/exposure_scan.sh --case me --dry-run --delta-only`  
+Verify sample: `bash scripts/exposure_scan.sh --case me --verify --dry-run --max 5`  
 Live vanish scan: `OPACITE_EXPOSURE_EXECUTE=1 bash scripts/exposure_scan.sh --case me --no-dry-run`  
 Writes `exports/exposure_plan.json` and `exports/exposure_report.json`.
 
